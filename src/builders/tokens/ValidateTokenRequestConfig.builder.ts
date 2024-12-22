@@ -17,7 +17,7 @@ export default class ValidateTokenRequestConfigBuilder {
         return this;
     }
 
-    build(): any {
+    build(): AxiosRequestConfig {
         if(this.config.headers == undefined) throw new Error('Headers are required');
         if (this.config.headers.Authorization === null) throw new Error('Access Token is required');
         return this.config;

@@ -36,7 +36,7 @@ export default class AccessTokenRequestConfigBuilder {
         return this;
     }
 
-    public build(): any {
+    public build(): AxiosRequestConfig {
         if (this.config.data.client_id === null) throw new Error('Client ID is required');
         if (this.config.data.client_secret === null) throw new Error('Client Secret is required');
         if (this.config.data.grant_type === null) throw new Error('Grant type is required');

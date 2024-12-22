@@ -25,7 +25,7 @@ export default class RevokeTokenRequestConfigBuilder {
         return this;
     }
 
-    public build(): any {
+    public build(): AxiosRequestConfig {
         if (this.config.data.client_id === null) throw new Error('Client ID is required');
         if (this.config.data.token === null) throw new Error('Token is required');
         return this.config;
