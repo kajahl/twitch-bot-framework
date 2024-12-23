@@ -4,6 +4,8 @@ import { AppToken, TokenRepository, UserToken } from "../storage/repository/Toke
 import DataStorage from "../storage/runtime/Data.storage";
 import Logger from "../utils/Logger";
 import TwtichPermissionScope from "../enums/TwitchPermissionScope.enum";
+import APIClient from "../clients/Api.client";
+import TwitchUserIdsMapCache from "../cache/objects/TwitchUserIdsMap.cache";
 
 const logger = new Logger('TokenService');
 
@@ -28,7 +30,7 @@ export class TokenService {
         }
 
         // else: Generate new token
-        logger.log(`Token is expired or not saved. Requesting new app access token...`);
+        logger.log(`AppToken is expired or not saved. Requesting new app access token...`);
         const data = DataStorage.getInstance();
         const accessTokenRequestConfig = new AccessTokenRequestConfigBuilder()
             .setClientId(data.clientId.get() as string)
@@ -60,12 +62,12 @@ export class TokenService {
 
         // If token is saved and is not expired: Return token
         if (token !== null && !this.isExpired(token.savedAt, token.expires_in)) {
-            logger.log(`Successfully retrieved user (${userId}) token from storage`);
+            logger.log(`Successfully retrieved access token for user id=${userId} from storage`);
             return token;
         }
 
         // else: Check if refresh token is saved
-        logger.log(`Token is expired or not saved. Checking if refresh token is saved...`);
+        logger.log(`UserAccessToken for user=${userId} is expired or not saved. Checking if refresh token is saved...`);
         this.tokenRepository.removeUserAccessToken(userId);
         const refreshToken = await this.tokenRepository.getUserRefreshToken(userId);
 
@@ -110,17 +112,51 @@ export class TokenService {
         return newToken;
     }
 
-    public async getUserToken(userId: string): Promise<string | null> {
+    public async getUserTokenById(userId: string): Promise<string | null> {
         const userToken = await this._getUserToken(userId);
         if(userToken === null) return null;
         return userToken.access_token
     }
 
-    public async getUserTokenWithScope(userId: string, scope: TwtichPermissionScope): Promise<string | null> {
+    public async getUserTokenWithScopesById(userId: string, scope: TwtichPermissionScope[]): Promise<string | null> {
         const userToken = await this._getUserToken(userId);
         if(userToken === null) return null;
-        if(userToken.scope.includes(scope)) return userToken.access_token;
-        return null;
+        for(const s of scope) {
+            if(!userToken.scope.includes(s)) return null;
+        }
+        return userToken.access_token
+    }
+
+    public async getUserTokenByNickname(nickname: string): Promise<string | null> {
+        // Cache Check
+        const userFromCache = TwitchUserIdsMapCache.getInstance().getByName(nickname);
+        if(userFromCache !== null) { 
+            logger.log(`Found id for user nickname=${nickname} in cache -> ${userFromCache.id}`);
+            return this.getUserTokenById(userFromCache.id);
+        }
+        // API Request
+        const appToken = await this.getAppToken();
+        const user = await new APIClient(appToken).user.getByLogin(nickname);
+        if(user === null) return null;
+        logger.log(`Retrieved id for user nickname=${nickname} -> ${user.id}`);
+        TwitchUserIdsMapCache.getInstance().set(user.login, { username: user.login, id: user.id });
+        return this.getUserTokenById(user.id);
+    }
+
+    public async getUserTokenWithScopesByNickname(nickname: string, scope: TwtichPermissionScope[]): Promise<string | null> {
+        // Cache Check
+        const userFromCache = TwitchUserIdsMapCache.getInstance().getByName(nickname);
+        if(userFromCache !== null) {
+            logger.log(`Found id for user nickname=${nickname} in cache -> ${userFromCache.id}`);
+            return this.getUserTokenWithScopesById(userFromCache.id, scope);
+        }
+        // API Request
+        const appToken = await this.getAppToken();
+        const user = await new APIClient(appToken).user.getByLogin(nickname);
+        if(user === null) return null;
+        logger.log(`Retrieved id for user nickname=${nickname} -> ${user.id}`);
+        TwitchUserIdsMapCache.getInstance().set(user.login, { username: user.login, id: user.id });
+        return this.getUserTokenWithScopesById(user.id, scope);
     }
     
 }
