@@ -1,12 +1,11 @@
 import axios from "axios";
 import GetUsersRequestConfigBuilder from "../builders/api/GetUsersRequestConfig.builder";
 import DataStorage from "../storage/runtime/Data.storage";
-import { subscribe } from "diagnostics_channel";
-import SubscribeEventRequestConfigBuilder from "../builders/eventsub/SubscribeEventRequestConfig.builder";
 import TwitchEventId from "../enums/TwitchEventId.enum";
 import DeleteEventSubscriptionRequestConfigBuilder from "../builders/eventsub/DeleteEventSubscriptionRequestConfig.builder";
 import SubscribedEventListRequestConfigBuilder from "../builders/eventsub/SubscribedEventListRequestConfig.builder";
 import { CreateSubscriptionResponse, DeleteSubscriptionResponse, GetSubscriptionsResponse } from "../types/APIClient.types";
+import CreateEventSubscriptionRequestConfigBuilder from "../builders/eventsub/CreateEventSubscriptionRequestConfig.builder";
 
 export default class APIClient {
     private data: DataStorage;
@@ -19,7 +18,7 @@ export default class APIClient {
     get events() {
         return {
             subscribe: async (type: TwitchEventId, version: 1 | 2, condition: any) : Promise<CreateSubscriptionResponse> => {
-                const requestConfig = new SubscribeEventRequestConfigBuilder()
+                const requestConfig = new CreateEventSubscriptionRequestConfigBuilder()
                     .setAccessToken(this.token)
                     .setClientId(this.data.clientId.get() as string)
                     .setSessionId(DataStorage.getInstance().websocketId.get() as string)
