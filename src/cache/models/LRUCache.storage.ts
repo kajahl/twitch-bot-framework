@@ -14,11 +14,11 @@ export class LRUCache<T> implements Cache<T> {
         return this.ttl > 0 && Date.now() > item.expiry;
     }
 
-    get(key: string): T | null {
+    get(key: string, ignoreTTL: boolean = false): T | null {
         const item = this.cache.get(key);
         if (!item) return null;
 
-        if (this.isExpired(item)) {
+        if (!ignoreTTL && this.isExpired(item)) {
             this.cache.delete(key);
             return null;
         }
@@ -28,6 +28,12 @@ export class LRUCache<T> implements Cache<T> {
         this.cache.set(key, item);
 
         return item.value;
+    }
+
+    values(ignoreTTL: boolean = false): T[] {
+        return Array.from(this.cache.values())
+            .filter(item => ignoreTTL || !this.isExpired(item))
+            .map(item => item.value);
     }
 
     set(key: string, value: T, options: CacheOptions = {}): void {

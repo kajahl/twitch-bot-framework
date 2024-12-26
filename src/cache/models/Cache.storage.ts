@@ -11,6 +11,7 @@ export type CacheItem<T> = {
 
 export type Cache<T> = {
     get(key: string): T | null;
+    values(): T[];
     set(key: string, value: T, options?: CacheOptions): void;
     delete(key: string): void;
     clear(): void;
