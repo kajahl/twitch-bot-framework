@@ -18,7 +18,7 @@ export default class UserCacheManager extends LRUCache<T> {
     private constructor(
         private tokenService: TokenService
     ) {
-        super({ ttl: 0 });
+        super({ ttl: 300 });
     }
 
     async findIdByUsername(username: string): Promise<string | null> {
