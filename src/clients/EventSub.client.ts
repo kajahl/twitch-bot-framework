@@ -1,14 +1,19 @@
 import WebSocket from "ws";
 import { NotificationPayload, RevocationPayload, WebsocketMessage, WebsocketMessageType, WelcomePayload } from "../types/Websocket.types";
 import Logger from "../utils/Logger";
+import APIClient from "./Api.client";
+import { TokenService } from "../services/Token.service";
+import DataStorage from "../storage/runtime/Data.storage";
+import TwitchEventId from "../enums/TwitchEventId.enum";
 
 const logger = new Logger('EventSubClient');
 
 export default class EventSubClient {
     private websocketClient: WebSocket | null = null;
-    private websocketConnectionId: string | null = null;
 
-    constructor() {}
+    constructor(
+        private tokenService: TokenService
+    ) {}
 
     // Keepalive
 
@@ -76,6 +81,7 @@ export default class EventSubClient {
     private _disconnect() {
         if (this.websocketClient == null) return;
         if (this.keepAliveInterval != null) clearTimeout(this.keepAliveInterval);
+        DataStorage.getInstance().websocketId.set(null);
         this.websocketClient.close();
         this.websocketClient = null;
     }
@@ -85,16 +91,21 @@ export default class EventSubClient {
     public connect() {
         try {
             this._connect();
+
+            const botUserId = DataStorage.getInstance().userId.get();
+            if(botUserId == null) throw new Error('Bot user id not set');
+            this.tokenService.getUserTokenById(botUserId).then(async token => {
+                if(token == null) throw new Error('Bot user token not found');
+                new APIClient(token).events.subscribe(TwitchEventId.ChannelChatMessage, 1, {
+                    user_id: botUserId,
+                    broadcaster_user_id: botUserId
+                });
+            })
         } catch (e) {
             logger.error(JSON.stringify(e));
             return false;
         }
         return true;
-    }
-    
-    public getConnectionId() {
-        if(this.websocketConnectionId == null) throw new Error('Not connected to EventSub WebSocket');
-        return this.websocketConnectionId;
     }
 
     // Message handling
@@ -111,7 +122,7 @@ export default class EventSubClient {
     
     private handleWelcomeMessage(welcomeMessage: WebsocketMessage<WelcomePayload>) {
         const websocketWelcome = welcomeMessage as WebsocketMessage<WelcomePayload>;
-        this.websocketConnectionId = websocketWelcome.payload.session.id;
+        DataStorage.getInstance().websocketId.set(websocketWelcome.payload.session.id);
         this.setupKeepAlive(websocketWelcome.payload.session.keepalive_timeout_seconds * 1000);
         return;
     }
