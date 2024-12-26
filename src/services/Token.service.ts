@@ -9,7 +9,16 @@ import UserCacheManager from "../cache/managers/UserCache.manager";
 const logger = new Logger('TokenService');
 
 export class TokenService {
-    constructor(
+    private static instance: TokenService;
+    public static init(tokenRepository: TokenRepository): TokenService {
+        TokenService.instance = new TokenService(tokenRepository);
+        return TokenService.instance;
+    }
+    public static getInstance(): TokenService {
+        return TokenService.instance;
+    }
+
+    private constructor(
         private tokenRepository: TokenRepository
     ) {}
 
