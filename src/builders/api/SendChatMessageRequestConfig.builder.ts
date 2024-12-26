@@ -1,33 +1,17 @@
 import { AxiosRequestConfig } from "axios";
+import { SendMessageResponse } from "../../types/APIClient.types";
+import TemplateBuilder from "../Template.builder";
 
-export default class SendChatMessageRequestConfigBuilder {
-    private config: AxiosRequestConfig = {
-        url: 'https://api.twitch.tv/helix/chat/messages',
-        method: 'POST',
-        headers: {
-            Authorization: null,
-            "Client-Id": null,
-            "Content-Type": "application/json"
-        },
-        data: {
+export default class SendChatMessageRequestConfigBuilder extends TemplateBuilder<SendMessageResponse> {
+    correctResponseCodes: number[] = [200];
+    errorResponseCodes: number[] = [400, 403, 422];
+
+    constructor() {
+        super('POST', 'https://api.twitch.tv/helix/chat/messages', {
             broadcaster_id: null,
             sender_id: null,
             message: null
-        }
-    }
-
-    constructor() {}
-
-    public setAccessToken(accessToken: string): SendChatMessageRequestConfigBuilder {
-        if(this.config.headers == undefined) throw new Error('Headers are required');
-        this.config.headers.Authorization = `Bearer ${accessToken}`;
-        return this;
-    }
-
-    public setClientId(clientId: string): SendChatMessageRequestConfigBuilder {
-        if(this.config.headers == undefined) throw new Error('Headers are required');
-        this.config.headers["Client-Id"] = clientId;
-        return this;
+        });
     }
 
     // TODO: ClientID i BroadcasterID na podstawie nicków, a nie ID - ale:
