@@ -14,6 +14,8 @@ export default class DataStorage {
     public readonly clientId: DataRecord<string> = new DataRecord('clientId');
     public readonly clientSecret: DataRecord<string> = new DataRecord('clientSecret');
     public readonly userId: DataRecord<string> = new DataRecord('userId');
+
+    public readonly websocketId: DataRecord<string | null> = new DataRecord('websocketId');
 }
 
 let id = 0;
