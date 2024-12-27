@@ -1,12 +1,13 @@
 import { AxiosRequestConfig } from "axios";
 import TwitchEventId from "../../enums/TwitchEventId.enum";
+import { MappedTwitchEventId, TwitchEventData } from "../../types/EventSub.types";
 
 /* 
 Related docs:
 https://dev.twitch.tv/docs/eventsub/manage-subscriptions/#subscribing-to-events
 */
 
-export default class CreateEventSubscriptionRequestConfigBuilder {
+export default class CreateEventSubscriptionRequestConfigBuilder<T extends MappedTwitchEventId> {
     private config: AxiosRequestConfig = {
         url: 'https://api.twitch.tv/helix/eventsub/subscriptions',
         method: 'POST',
@@ -26,36 +27,36 @@ export default class CreateEventSubscriptionRequestConfigBuilder {
         }
     }
 
-    constructor() {}
+    constructor(type: T) {}
 
-    public setAccessToken(accessToken: string): CreateEventSubscriptionRequestConfigBuilder {
+    public setAccessToken(accessToken: string): this {
         if(this.config.headers == undefined) throw new Error('Headers are required');
         this.config.headers.Authorization = `Bearer ${accessToken}`;
         return this;
     }
 
-    public setClientId(clientId: string): CreateEventSubscriptionRequestConfigBuilder {
+    public setClientId(clientId: string): this {
         if(this.config.headers == undefined) throw new Error('Headers are required');
         this.config.headers["Client-Id"] = clientId;
         return this;
     }
 
-    public setType(type: TwitchEventId): CreateEventSubscriptionRequestConfigBuilder {
+    public setType(type: TwitchEventId): this {
         this.config.data.type = type;
         return this;
     }
 
-    public setVersion(version: 1 | 2 ): CreateEventSubscriptionRequestConfigBuilder {
+    public setVersion(version: TwitchEventData<T>['version']): this {
         this.config.data.version = version;
         return this;
     }
 
-    public setCondition(condition: any): CreateEventSubscriptionRequestConfigBuilder {
+    public setCondition(condition: TwitchEventData<T>['condition']): this {
         this.config.data.condition = condition;
         return this;
     }
 
-    public setSessionId(sessionId: string): CreateEventSubscriptionRequestConfigBuilder {
+    public setSessionId(sessionId: string): this {
         this.config.data.transport.session_id = sessionId;
         return this;
     }
