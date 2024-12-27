@@ -35,8 +35,4 @@ export type GetSubscriptionsResponse = CreateSubscriptionResponse & {
     pagination: {};
 }
 
-export type DeleteSubscriptionResponse = {} | {
-    error: string;
-    status: number;
-    message: string;
-}
+export type DeleteSubscriptionResponse = {}
