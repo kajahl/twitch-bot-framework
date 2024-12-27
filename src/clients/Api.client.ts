@@ -6,6 +6,7 @@ import DeleteEventSubscriptionRequestConfigBuilder from "../builders/eventsub/De
 import SubscribedEventListRequestConfigBuilder from "../builders/eventsub/SubscribedEventListRequestConfig.builder";
 import { CreateSubscriptionResponse, DeleteSubscriptionResponse, GetSubscriptionsResponse } from "../types/APIClient.types";
 import CreateEventSubscriptionRequestConfigBuilder from "../builders/eventsub/CreateEventSubscriptionRequestConfig.builder";
+import { MappedTwitchEventId, TwitchEventData } from "../types/EventSub.types";
 
 export default class APIClient {
     private data: DataStorage;
@@ -17,8 +18,8 @@ export default class APIClient {
 
     get events() {
         return {
-            subscribe: async (type: TwitchEventId, version: 1 | 2, condition: any) : Promise<CreateSubscriptionResponse> => {
-                const requestConfig = new CreateEventSubscriptionRequestConfigBuilder()
+            subscribe: async<T extends MappedTwitchEventId> (type: T, version: TwitchEventData<T>['version'], condition: TwitchEventData<T>['condition']) : Promise<CreateSubscriptionResponse> => {
+                const requestConfig = new CreateEventSubscriptionRequestConfigBuilder(type)
                     .setAccessToken(this.token)
                     .setClientId(this.data.clientId.get() as string)
                     .setSessionId(DataStorage.getInstance().websocketId.get() as string)
