@@ -1,12 +1,6 @@
 import axios from "axios";
 import GetUsersRequestConfigBuilder from "../builders/api/GetUsersRequestConfig.builder";
 import DataStorage from "../storage/runtime/Data.storage";
-import TwitchEventId from "../enums/TwitchEventId.enum";
-import DeleteEventSubscriptionRequestConfigBuilder from "../builders/eventsub/DeleteEventSubscriptionRequestConfig.builder";
-import SubscribedEventListRequestConfigBuilder from "../builders/eventsub/SubscribedEventListRequestConfig.builder";
-import { CreateSubscriptionResponse, DeleteSubscriptionResponse, GetSubscriptionsResponse } from "../types/APIClient.types";
-import CreateEventSubscriptionRequestConfigBuilder from "../builders/eventsub/CreateEventSubscriptionRequestConfig.builder";
-import { MappedTwitchEventId, TwitchEventData } from "../types/EventSub.types";
 
 export default class APIClient {
     private data: DataStorage;
@@ -14,46 +8,6 @@ export default class APIClient {
         private token: string
     ) {
         this.data = DataStorage.getInstance();
-    }
-
-    get events() {
-        return {
-            subscribe: async<T extends MappedTwitchEventId> (type: T, version: TwitchEventData<T>['version'], condition: TwitchEventData<T>['condition']) : Promise<CreateSubscriptionResponse> => {
-                const requestConfig = new CreateEventSubscriptionRequestConfigBuilder(type)
-                    .setAccessToken(this.token)
-                    .setClientId(this.data.clientId.get() as string)
-                    .setSessionId(DataStorage.getInstance().websocketId.get() as string)
-                    .setType(type)
-                    .setVersion(version)
-                    .setCondition(condition)
-                    .build();
-                const response = await axios.request<CreateSubscriptionResponse>(requestConfig);
-                if(response.status !== 202) throw new Error(`Failed to subscribe to event type=${type}`);
-                return response.data;
-            },
-            unsubscribe: async (id: string) : Promise<DeleteSubscriptionResponse> => {
-                const requestConfig = new DeleteEventSubscriptionRequestConfigBuilder()
-                    .setAccessToken(this.token)
-                    .setClientId(this.data.clientId.get() as string)
-                    .setSubscriptionId(id)
-                    .build();
-                const response = await axios.request<DeleteSubscriptionResponse>(requestConfig);
-                if(response.status !== 204) throw new Error(`Failed to unsubscribe from event id=${id}`);
-                return response.data;
-            },
-            list: async (showUnactive: boolean = false) : Promise<GetSubscriptionsResponse> => {
-                const requestConfig = new SubscribedEventListRequestConfigBuilder()
-                    .setAccessToken(this.token)
-                    .setClientId(this.data.clientId.get() as string)
-                    .build();
-                const response = await axios.request<GetSubscriptionsResponse>(requestConfig);
-                if(response.status !== 200) throw new Error(`Failed to get event subscriptions`);
-                return {
-                    ...response.data,
-                    data: showUnactive ? response.data.data : response.data.data.filter(sub => sub.status === 'enabled')
-                };
-            }
-        }
     }
 
     get user() {
