@@ -3,6 +3,8 @@ import { NotificationPayload, RevocationPayload, WebsocketMessage, WebsocketMess
 import Logger from "../utils/Logger";
 import { WebSocket } from "ws";
 import EventSubClient from "./EventSub.client";
+import { CommandHandler } from "../storage/decorators/Command.decorator";
+import TwitchEventId from "../enums/TwitchEventId.enum";
 
 const logger = new Logger('WebsocketClient');
 
@@ -118,7 +120,8 @@ export default class WebsocketClient {
         this.updateKeepAliveTimestamp();
 
         const notification = websocketNotification.payload;
-        logger.log(`Received notification: ${JSON.stringify(notification)}`);
+        // logger.log(`Received notification: ${JSON.stringify(notification)}`);
+        if(notification.subscription.type == TwitchEventId.ChannelChatMessage) CommandHandler(notification.event);
 
         return;
     }
