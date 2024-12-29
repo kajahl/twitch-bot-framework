@@ -34,8 +34,8 @@ export default class UserCacheManager extends LRUCache<T> {
             return userFromCache;
         }
         // API Request
-        const appToken = await this.tokenService.getAppToken();
-        const user = await new APIClient(appToken).user.getByLogin(username);
+        const appApi = await APIClient.asApp();
+        const user = await appApi.user.getByLogin(username);
         if(user === null) return null;
         logger.log(`Retrieved data for user nickname=${username}`);
         this.set(user.id, user);
@@ -49,8 +49,8 @@ export default class UserCacheManager extends LRUCache<T> {
             return userFromCache;
         }
         // API Request
-        const appToken = await this.tokenService.getAppToken();
-        const user = await new APIClient(appToken).user.getById(id);
+        const appApi = await APIClient.asApp();
+        const user = await appApi.user.getById(id);
         if(user === null) return null;
         logger.log(`Retrieved data for user nickname=${id}`);
         this.set(id, user);
