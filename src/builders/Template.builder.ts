@@ -36,10 +36,10 @@ export default abstract class TemplateBuilder<ResponseType> {
 
     abstract build(): AxiosRequestConfig;
 
-    async make(): Promise<GeneralResponseBody<ResponseType>['data']> {
+    async make(): Promise<GeneralResponseBody<ResponseType>> {
         const requestConfig = this.build();
         const response = await axios.request<GeneralResponseBody<ResponseType>>(requestConfig);
-        if(this.correctResponseCodes.includes(response.status)) return response.data.data;
+        if(this.correctResponseCodes.includes(response.status)) return response.data;
         else if(this.errorResponseCodes.includes(response.status)) {
             const error = response.data as any as GeneralResponseError;
             throw new Error(`${error.status}: ${error.error} - ${error.message}`);
