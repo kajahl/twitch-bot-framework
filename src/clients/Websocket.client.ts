@@ -3,7 +3,7 @@ import { NotificationPayload, RevocationPayload, WebsocketMessage, WebsocketMess
 import Logger from "../utils/Logger";
 import { WebSocket } from "ws";
 import EventSubClient from "./EventSub.client";
-import { CommandHandler } from "../storage/decorators/Command.decorator";
+import { CommandHandler } from "../storage/decorators/ChatCommand.decorator";
 import TwitchEventId from "../enums/TwitchEventId.enum";
 
 const logger = new Logger('WebsocketClient');
