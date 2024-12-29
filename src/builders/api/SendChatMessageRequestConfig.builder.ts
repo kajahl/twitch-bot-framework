@@ -1,8 +1,7 @@
 import { AxiosRequestConfig } from "axios";
-import { SendMessageResponse } from "../../types/APIClient.types";
 import TemplateBuilder from "../Template.builder";
 
-export default class SendChatMessageRequestConfigBuilder extends TemplateBuilder<SendMessageResponse> {
+export default class SendChatMessageRequestConfigBuilder extends TemplateBuilder<SendChatMessageResponse> {
     correctResponseCodes: number[] = [200];
     errorResponseCodes: number[] = [400, 403, 422];
 
@@ -41,4 +40,15 @@ export default class SendChatMessageRequestConfigBuilder extends TemplateBuilder
         if(this.config.data.message == null) throw new Error('Message is required');
         return this.config;
     }
+}
+
+export type SendChatMessageResponse = {
+    data: {
+        message_id: string;
+        is_sent: boolean;
+        drop_reason: {
+            code: number;
+            message: string;
+        } | undefined;
+    }[]
 }

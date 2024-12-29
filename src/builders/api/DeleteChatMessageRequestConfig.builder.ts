@@ -1,7 +1,7 @@
 import { AxiosRequestConfig } from "axios";
 import TemplateBuilder from "../Template.builder";
 
-export default class DeleteChatMessageRequestConfigBuilder extends TemplateBuilder<{}>{
+export default class DeleteChatMessageRequestConfigBuilder extends TemplateBuilder<DeleteChatMessageResponse>{
     correctResponseCodes: number[] = [204];
     errorResponseCodes: number[] = [400, 401, 403, 404];
 
@@ -48,3 +48,5 @@ export default class DeleteChatMessageRequestConfigBuilder extends TemplateBuild
         return this.config;
     }
 }
+
+export type DeleteChatMessageResponse = {}
