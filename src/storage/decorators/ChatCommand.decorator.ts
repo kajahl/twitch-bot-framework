@@ -2,7 +2,7 @@ import { ChatCommandExecution, ChatCommandInstance, ChatCommandDecoratorOptions 
 import ChannelChatMessageEventData from "../../types/EventSub_Events/ChannelChatMessageEventData.types";
 import Logger from "../../utils/Logger";
 
-const logger = new Logger('CommandDecorator');
+const logger = new Logger('ChatCommandDecorator');
 
 // CommandsContainer
 type ChatCommandFactory = () => any;
