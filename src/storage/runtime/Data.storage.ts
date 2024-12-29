@@ -23,8 +23,8 @@ class DataRecord<T> {
     private data: T | null = null;
     constructor(private label = `label_${id++}`) {}
 
-    public get(): T | null {
-        // logger.log(`Getting data for ${this.label} (${this.data})`);
+    public get(): T {
+        if (this.data === null) throw new Error(`Data for ${this.label} is not set`);
         return this.data;
     }
 
