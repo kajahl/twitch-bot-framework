@@ -120,6 +120,12 @@ export class TokenService {
         return newToken;
     }
 
+    public async getUserTokenObjectById(userId: string): Promise<UserToken | null> {
+        const userToken = await this._getUserToken(userId);
+        if(userToken === null) return null;
+        return userToken
+    }
+
     public async getUserTokenById(userId: string): Promise<string | null> {
         const userToken = await this._getUserToken(userId);
         if(userToken === null) return null;
