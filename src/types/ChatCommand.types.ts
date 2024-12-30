@@ -9,21 +9,21 @@ export type ChatCommandInstance = ChatCommandExecutionGuard & ChatCommandPreExec
 // Decorator
 
 export type ChatCommandDecoratorOptions = {
-    commandName: string;
-    keyword?: string;
+    name: string;
+    keyword: string;
+    aliases?: string[];
     ignorePrefix?: boolean;
     ignoreCase?: boolean;
-    anyMessage?: boolean;
     transistent?: boolean;
 };
 
 // Guard
 
 export type ChatCommandExecutionGuard = {
-    guard: (...args: any[]) => TorPromiseT<ChatCommandExecutionGuardAvaliableResults>;
+    guard: (data: ChatCommandExecutionData, ...args: any[]) => TorPromiseT<ChatCommandExecutionGuardAvaliableResults>;
 };
 
-type ChatCommandExecutionGuardAvaliableResults = ChatCommandExecutionGuardBlockResult | ChatCommandExecutionGuardPassResult;
+export type ChatCommandExecutionGuardAvaliableResults = ChatCommandExecutionGuardBlockResult | ChatCommandExecutionGuardPassResult;
 
 export type ChatCommandExecutionGuardBlockResult = {
     canAccess: false;
