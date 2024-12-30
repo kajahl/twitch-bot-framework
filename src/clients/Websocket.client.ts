@@ -5,6 +5,7 @@ import { WebSocket } from "ws";
 import EventSubClient from "./EventSub.client";
 import { CommandHandler } from "../storage/decorators/ChatCommand.decorator";
 import TwitchEventId from "../enums/TwitchEventId.enum";
+import { ListenerHandler } from "../storage/decorators/ChatListener.decorator";
 
 const logger = new Logger('WebsocketClient');
 
@@ -121,7 +122,10 @@ export default class WebsocketClient {
 
         const notification = websocketNotification.payload;
         // logger.log(`Received notification: ${JSON.stringify(notification)}`);
-        if(notification.subscription.type == TwitchEventId.ChannelChatMessage) CommandHandler(notification.event);
+        if(notification.subscription.type == TwitchEventId.ChannelChatMessage) {
+            CommandHandler(notification.event);
+            ListenerHandler(notification.event);
+        }
 
         return;
     }
