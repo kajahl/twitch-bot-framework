@@ -9,7 +9,8 @@ export default class SendChatMessageRequestConfigBuilder extends TemplateBuilder
         super('POST', 'https://api.twitch.tv/helix/chat/messages', {
             broadcaster_id: null,
             sender_id: null,
-            message: null
+            message: null,
+            reply_parent_message_id: null,
         });
     }
 
@@ -28,6 +29,11 @@ export default class SendChatMessageRequestConfigBuilder extends TemplateBuilder
 
     public setMessage(message: string): SendChatMessageRequestConfigBuilder {
         this.config.data.message = message;
+        return this;
+    }
+
+    public setReplyToMessageId(messageId: string | null): SendChatMessageRequestConfigBuilder {
+        this.config.data.reply_parent_message_id = messageId;
         return this;
     }
 
