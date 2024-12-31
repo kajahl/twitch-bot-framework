@@ -104,6 +104,6 @@ export function ListenerHandler(data: ChannelChatMessageEventData): void {
     const listeners = chatListenerRegistry.getRegisteredEntries();
     listeners.forEach(listener => {
         const instance = chatListenersContainer.get(listener.target);
-        instance.execution(data);
+        instance.execution({ event: data });
     });
 }
