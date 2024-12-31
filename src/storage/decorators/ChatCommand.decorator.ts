@@ -1,3 +1,4 @@
+import Chat from "../../objects/Chat";
 import { ChatCommandExecution, ChatCommandInstance, ChatCommandDecoratorOptions } from "../../types/ChatCommand.types";
 import ChannelChatMessageEventData from "../../types/EventSub_Events/ChannelChatMessageEventData.types";
 import Logger from "../../utils/Logger";
@@ -182,8 +183,9 @@ export async function CommandHandler(data: ChannelChatMessageEventData): Promise
     if(methods.includes('guard')) {
         const guardResult = await instance.guard({ event: data });
         if(!guardResult.canAccess) {
-            // TODO: Send message to chat with message from guard
             console.log(`Guard failed for command ${command.entry.options.name} for user ${data.chatter_user_login} in channel ${data.broadcaster_user_login}`);
+            const chat = await Chat.byId(data.broadcaster_user_id);
+            chat.message.send(`@${data.chatter_user_login}, ${guardResult.message}`, data.message_id);
             return;
         }
     }
