@@ -104,7 +104,7 @@ export default class EventSubClient {
         if(!userTokenObject.scope.includes(TwtichPermissionScope.ChannelBot)) 
             throw new Error(`User token does not have required scope channel:bot (avaliable scopes: ${userTokenObject.scope.join(', ')})`);
 
-        this.subscribe(TwitchEventId.ChannelChatMessage, {
+        return this.subscribe(TwitchEventId.ChannelChatMessage, {
             broadcaster_user_id: channelId,
             user_id: asUserId
         }, 1, userTokenObject.access_token);
@@ -117,6 +117,6 @@ export default class EventSubClient {
         const data = await this.list(userTokenObject.access_token, TwitchEventId.ChannelChatMessage);
         const subscription = data.data.filter(sub => sub.status == 'enabled').find(sub => sub.condition.broadcaster_user_id === channelId);
         if(!subscription) throw new Error('Subscription not found');
-        this.unsubscribe(subscription.id, userTokenObject.access_token);
+        return this.unsubscribe(subscription.id, userTokenObject.access_token);
     }
 }
