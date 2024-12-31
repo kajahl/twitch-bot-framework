@@ -19,11 +19,11 @@ export class GeneralContainer<Factory extends GeneralFactory, Instance> {
         this.registry.set(entry.id, entry);
     }
 
-    public get(id: any): any {
+    public get(id: any): Instance {
         const entry = this.registry.get(id);
         if (!entry) throw new Error(`No entry found for id=${id}`);
         if (!entry.transient && !entry.instance) entry.instance = entry.factory();
-        return entry.transient ? entry.factory() : entry.instance;
+        return (entry.transient ? entry.factory() : entry.instance) as Instance;
     }
 }
 
