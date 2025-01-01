@@ -5,13 +5,13 @@ export default class SendChatMessageRequestConfigBuilder extends TemplateBuilder
     correctResponseCodes: number[] = [200];
     errorResponseCodes: number[] = [400, 403, 422];
 
-    constructor() {
+    constructor(useAppToken: boolean = false) {
         super('POST', 'https://api.twitch.tv/helix/chat/messages', {
             broadcaster_id: null,
             sender_id: null,
             message: null,
             reply_parent_message_id: null,
-        });
+        }, () => useAppToken ? 'app' : this.config.data.sender_id as string);
     }
 
     // TODO: ClientID i BroadcasterID na podstawie nicków, a nie ID - ale:

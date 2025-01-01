@@ -12,7 +12,7 @@ export default class GetModeratorsRequestConfigBuilder extends TemplateBuilder<G
             user_id: null,
             after: null,
             first: null
-        });
+        }, () => this.config.data.user_id);
     }
 
     public setBroadcasterId(broadcasterId: string): GetModeratorsRequestConfigBuilder {

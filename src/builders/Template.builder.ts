@@ -1,13 +1,15 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
 import DataStorage from "../storage/runtime/Data.storage";
 import { GeneralResponseBody, GeneralResponseError } from "../types/APIClient.types";
+import RateLimiterService from "../services/RateLimiter.service";
 
 export default abstract class TemplateBuilder<ResponseType> {
     protected config: AxiosRequestConfig;
     abstract correctResponseCodes: number[];
     abstract errorResponseCodes: number[];
+    private getUserIdRelatedToToken: () => string;
 
-    constructor(method: Method, url: string, data: any = {}) {
+    constructor(method: Method, url: string, data: any, getUserIdRelatedToToken: typeof this.getUserIdRelatedToToken) {
         const clientId = DataStorage.getInstance().clientId.get();
         if(clientId == null) throw new Error('Client ID is required');
         this.config = {
@@ -20,6 +22,7 @@ export default abstract class TemplateBuilder<ResponseType> {
             },
             data
         }
+        this.getUserIdRelatedToToken = getUserIdRelatedToToken;
     }
 
     setClientId(clientId: string): this {
@@ -38,7 +41,8 @@ export default abstract class TemplateBuilder<ResponseType> {
 
     async make(): Promise<GeneralResponseBody<ResponseType>> {
         const requestConfig = this.build();
-        const response = await axios.request<GeneralResponseBody<ResponseType>>(requestConfig);
+        const rateLimiter = RateLimiterService.forUser(this.getUserIdRelatedToToken());
+        const response = await rateLimiter.send<GeneralResponseBody<ResponseType>>(requestConfig)
         if(this.correctResponseCodes.includes(response.status)) return response.data;
         else if(this.errorResponseCodes.includes(response.status)) {
             const error = response.data as any as GeneralResponseError;

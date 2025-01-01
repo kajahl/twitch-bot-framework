@@ -1,8 +1,9 @@
-import axios from 'axios';
 import GetUsersRequestConfigBuilder from '../builders/api/GetUsersRequestConfig.builder';
 import DataStorage from '../storage/runtime/Data.storage';
 import { TokenService } from '../services/Token.service';
 import GetModeratorsRequestConfigBuilder from '../builders/api/GetModeratorsRequestConfig.builder';
+import RateLimiterService from '../services/RateLimiter.service';
+import { TwitchUser } from '../cache/managers/UserCache.manager';
 
 export default class APIClient {
     static async asUserId(userId: string) {
@@ -27,44 +28,31 @@ export default class APIClient {
         this.data = DataStorage.getInstance();
     }
 
+    private getRateLimiter() {
+        return this.isUserToken ? RateLimiterService.forUser(this.userId) : RateLimiterService.forApp();
+    }
+
     get user() {
         return {
-            get: async (params: { ids?: string[]; logins?: string[] }): Promise<any> => {
-                const requestConfig = new GetUsersRequestConfigBuilder()
+            get: async (params: { ids?: string[]; logins?: string[] }): Promise<TwitchUser[]> => {
+                const data = await new GetUsersRequestConfigBuilder()
                     .setClientId(this.data.clientId.get() as string)
                     .setAccessToken(this.token)
                     .addLogins(params.logins || [])
                     .addUserIds(params.ids || [])
-                    .build();
-                const response = await axios.request<ResponseBody<User>>(requestConfig);
-                if (response.status !== 200) throw new Error(`Failed to get users by params=${JSON.stringify(params)}`);
-                const data = response.data.data;
-                return data;
+                    .make();
+                return data.data;
             },
-            getById: async (id: string): Promise<any> => {
-                const requestConfig = new GetUsersRequestConfigBuilder()
-                    .setClientId(this.data.clientId.get() as string)
-                    .setAccessToken(this.token)
-                    .addUserId(id)
-                    .build();
-                const response = await axios.request<ResponseBody<User>>(requestConfig);
-                if (response.status !== 200) throw new Error(`Failed to get users id=${id}`);
-                const data = response.data.data;
+            getById: async (id: string): Promise<TwitchUser> => {
+                const data = await this.user.get({ ids: [id] });
                 if (data.length === 0) throw new Error(`User not found by id=${id}`);
                 if (data.length > 1) throw new Error(`Multiple users found by id=${id}`);
                 return data[0];
             },
-            getByLogin: async (login: string): Promise<any> => {
-                const requestConfig = new GetUsersRequestConfigBuilder()
-                    .setClientId(this.data.clientId.get() as string)
-                    .setAccessToken(this.token)
-                    .addLogin(login)
-                    .build();
-                const response = await axios.request<ResponseBody<User>>(requestConfig);
-                if (response.status !== 200) throw new Error(`Failed to get user by login=${login}`);
-                const data = response.data.data;
-                if (data.length === 0) throw new Error(`User not found by login=${login}`);
-                if (data.length > 1) throw new Error(`Multiple users found by login=${login}`);
+            getByLogin: async (login: string): Promise<TwitchUser> => {
+                const data = await this.user.get({ logins: [login] });
+                if (data.length === 0) throw new Error(`User not found by id=${login}`);
+                if (data.length > 1) throw new Error(`Multiple users found by id=${login}`);
                 return data[0];
             },
         };
@@ -86,18 +74,4 @@ export default class APIClient {
 // Temp location
 export type ResponseBody<T> = {
     data: T[];
-};
-
-export type User = {
-    id: string;
-    login: string;
-    display_name: string;
-    type: string;
-    broadcaster_type: string;
-    description: string;
-    profile_image_url: string;
-    offline_image_url: string;
-    view_count: number;
-    email?: string;
-    created_at: string;
 };

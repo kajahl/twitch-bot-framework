@@ -1,17 +1,14 @@
 import { AxiosRequestConfig } from "axios";
+import TemplateBuilder from "../Template.builder";
+import { TwitchUser } from "../../cache/managers/UserCache.manager";
 
-export default class GetUsersRequestConfigBuilder {
-    private config: AxiosRequestConfig = {
-        url: 'https://api.twitch.tv/helix/users',
-        method: 'GET',
-        headers: {
-            Authorization: null,
-            "Client-Id": null,
-            "Content-Type": "application/json"
-        }
+export default class GetUsersRequestConfigBuilder extends TemplateBuilder<GetUsersResponse> {
+    correctResponseCodes: number[] = [200];
+    errorResponseCodes: number[] = [400, 401];
+
+    constructor(asUserId?: string) {
+        super('GET', 'https://api.twitch.tv/helix/users', {}, () => asUserId || 'app');
     }
-
-    constructor() {}
     private logins: string[] = [];
     private userIds: string[] = [];
 
@@ -21,18 +18,6 @@ export default class GetUsersRequestConfigBuilder {
     }
     private canAddLoginOrId(): boolean {
         return this.getLoginsAndIdsSum() <= this.maxLoginsAndIds;
-    }
-
-    public setAccessToken(accessToken: string): GetUsersRequestConfigBuilder {
-        if(this.config.headers == undefined) throw new Error('Headers are required');
-        this.config.headers.Authorization = `Bearer ${accessToken}`;
-        return this;
-    }
-
-    public setClientId(clientId: string): GetUsersRequestConfigBuilder {
-        if(this.config.headers == undefined) throw new Error('Headers are required');
-        this.config.headers["Client-Id"] = clientId;
-        return this;
     }
 
     public addUserId(userId: string): GetUsersRequestConfigBuilder {
@@ -74,4 +59,8 @@ export default class GetUsersRequestConfigBuilder {
         this.config.url += `?${queryParams.join('&')}`;
         return this.config;
     }
+}
+
+export type GetUsersResponse = {
+    data: TwitchUser[]
 }

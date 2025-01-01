@@ -10,7 +10,8 @@ export default class DeleteChatMessageRequestConfigBuilder extends TemplateBuild
     private message_id: string | null = null;
 
     constructor() {
-        super('DELETE', 'https://api.twitch.tv/helix/moderation/chat');
+        // this.moderator_id as string - build() method will throw an error if moderator_id is null
+        super('DELETE', 'https://api.twitch.tv/helix/moderation/chat', {}, () => this.moderator_id as string);
     }
 
     public setBroadcasterId(broadcasterId: string): DeleteChatMessageRequestConfigBuilder {
