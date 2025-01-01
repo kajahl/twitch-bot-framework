@@ -26,6 +26,7 @@ If you receive HTTP status code 429, use the Ratelimit-Reset header to learn how
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import { RequestPriority, RequestQueueItem, TwitchRatelimitState } from "../types/RateLimiter.types";
 import Logger from "../utils/Logger";
+import TimeCounter from "../utils/TimeCounter";
 
 const logger = new Logger('RateLimiterService');
 
@@ -100,14 +101,17 @@ export default class RateLimiterService {
                 log(`Sending request... Attempt ${attempt}`);
                 this.requestCount++;
                 if(config.method == 'GET' && config.data != undefined) delete config.data;
+                const timer = new TimeCounter().start();
                 axios.request<ResponseData>(config)
                     .then((response) => {
-                        log(`Resolved request`);
+                        const elapsed = timer.stop();
+                        log(`Resolved request in ${elapsed}ms`);
                         this.analyzeResponse(config, response);
                         resolve(response);
                     })
                     .catch((error: AxiosError) => {
-                        log(`Rejected request`);
+                        const elapsed = timer.stop();
+                        log(`Rejected request after ${elapsed}ms`);
                         this.analyzeError(config, error);
                         if (error.response?.status !== 429) {
                             reject(error);
