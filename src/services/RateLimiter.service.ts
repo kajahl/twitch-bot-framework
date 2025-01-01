@@ -32,13 +32,12 @@ const logger = new Logger('RateLimiterService');
 export default class RateLimiterService {
     private static instances: Map<string, RateLimiterService> = new Map();
     private constructor(private id: string) {}
-    static forUser(userId: string) {
+    static forUser(userId: string | 'app') {
         if(!RateLimiterService.instances.has(userId)) RateLimiterService.instances.set(userId, new RateLimiterService(userId));
         return RateLimiterService.instances.get(userId) as RateLimiterService;
     }
     static forApp() {
-        if(!RateLimiterService.instances.has('app')) RateLimiterService.instances.set('app', new RateLimiterService('app'));
-        return RateLimiterService.instances.get('app') as RateLimiterService;
+        return RateLimiterService.forUser('app');
     }
 
     private state: TwitchRatelimitState = {
@@ -81,8 +80,7 @@ export default class RateLimiterService {
     public async send<ResponseData>(
         config: AxiosRequestConfig,
         priority: RequestPriority = RequestPriority.Medium
-    ): Promise<AxiosResponse> {
-
+    ) {
         return this.handleRequest<ResponseData>(config, priority);
     }
 
@@ -101,14 +99,16 @@ export default class RateLimiterService {
             const sendRequest = (attempt: number) => {
                 log(`Sending request... Attempt ${attempt}`);
                 this.requestCount++;
-                axios<ResponseData>(config)
+                if(config.method == 'GET' && config.data != undefined) delete config.data;
+                axios.request<ResponseData>(config)
                     .then((response) => {
                         log(`Resolved request`);
-                        this.analyzeResponse(response);
+                        this.analyzeResponse(config, response);
                         resolve(response);
                     })
                     .catch((error: AxiosError) => {
                         log(`Rejected request`);
+                        this.analyzeError(config, error);
                         if (error.response?.status !== 429) {
                             reject(error);
                             return
@@ -131,7 +131,6 @@ export default class RateLimiterService {
                         } else {
                             reject(error);
                         }
-                        this.analyzeError(error);
                         this.handleQueue();
                     });
             };
@@ -153,12 +152,13 @@ export default class RateLimiterService {
         });
     }
 
-    private analyzeResponse(response: AxiosResponse) {
+    private analyzeResponse(config: AxiosRequestConfig, response: AxiosResponse) {
         // Will be implemented in the future
     }
 
-    private analyzeError(error: AxiosError) {
-        // Will be implemented in the future
+    private analyzeError(config: AxiosRequestConfig, error: AxiosError) {
+        console.error(config);
+        console.error(error);
     }
 
 }
