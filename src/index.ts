@@ -35,6 +35,8 @@ import CounterListener from './/example/listeners/Counter.listener';
 import ShowMessageListener from './/example/listeners/ShowMessage.listener';
 
 // Decorator Types
+import { ChatCommand } from './storage/decorators/ChatCommand.decorator';
+import { ChatListener } from './storage/decorators/ChatListener.decorator';
 import { ChatCommandDecoratorOptions } from './/types/ChatCommand.types';
 import { ChatListenerDecoratorOptions } from './/types/ChatListener.types';
 
@@ -51,7 +53,7 @@ export {
     Chat, User,
     ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPreExecution, ChatCommandExecution, ChatCommandPostExecution, ChatCommandExecutionData,
     ChatListenerExecution, ChatListenerExecutionData,
-    ChatCommandDecoratorOptions, ChatListenerDecoratorOptions,
+    ChatCommandDecoratorOptions, ChatListenerDecoratorOptions, ChatCommand, ChatListener,
     PingCommand, ExampleCommand,
     CounterListener, ShowMessageListener,
     ChannelChatMessageEventData, Message, MessageFragment, Badge, BadgeSetId
