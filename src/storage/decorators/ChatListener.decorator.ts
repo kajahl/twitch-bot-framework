@@ -62,8 +62,9 @@ const logger = new Logger('ChatListenerDecorator');
 // }
 
 
-const chatListenersContainer = GeneralContainer.getInstance<GeneralFactory, ChatListenerExecution>();
+export const chatListenersContainer = GeneralContainer.getInstance<GeneralFactory, ChatListenerExecution>();
 const chatListenerRegistry = GeneralRegistry.getInstance<ChatListenerInstance, ChatListenerDecoratorOptions>();
+
 
 // Decorator
 export function ChatListener(options: ChatListenerDecoratorOptions): ClassDecorator {
@@ -79,7 +80,8 @@ export function ChatListener(options: ChatListenerDecoratorOptions): ClassDecora
         chatListenersContainer.set({
             id: target,
             factory: () => new target(),
-            transient: allOptions.transient
+            transient: allOptions.transient,
+            enabled: false // Default disabled (enable by setting in TwitchBotFramework)
         });
 
         const instance = chatListenersContainer.get(target) as ChatListenerInstance;
@@ -103,7 +105,12 @@ export function ChatListener(options: ChatListenerDecoratorOptions): ClassDecora
 export function ListenerHandler(data: ChannelChatMessageEventData): void {
     const listeners = chatListenerRegistry.getRegisteredEntries();
     listeners.forEach(listener => {
-        const instance = chatListenersContainer.get(listener.target);
+        let instance: ChatListenerInstance;
+        try {
+            instance = chatListenersContainer.get(listener.target, true);
+        } catch (error) {
+            return;
+        }
         
         try {
             instance.execution({ event: data });

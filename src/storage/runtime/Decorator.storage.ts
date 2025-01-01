@@ -5,6 +5,7 @@ export type GeneralContainerEntry<Factory extends GeneralFactory, Instance> = {
     factory: Factory;
     instance?: Instance;
     transient: boolean;
+    enabled: boolean;
 }
 
 export class GeneralContainer<Factory extends GeneralFactory, Instance> {
@@ -19,11 +20,29 @@ export class GeneralContainer<Factory extends GeneralFactory, Instance> {
         this.registry.set(entry.id, entry);
     }
 
-    public get(id: any): Instance {
+    /**
+     * Get the instance for the given id (target)
+     * @param id target id
+     * @returns instance
+     * @throws Error if no entry found for the given id
+     * @throws Error if entry is not enabled
+     */
+    public get(id: any, shouldBeEnabled: boolean = false): Instance {
         const entry = this.registry.get(id);
         if (!entry) throw new Error(`No entry found for id=${id}`);
+        if (shouldBeEnabled && !entry.enabled) throw new Error(`Entry with id=${id} is not enabled`);
         if (!entry.transient && !entry.instance) entry.instance = entry.factory();
         return (entry.transient ? entry.factory() : entry.instance) as Instance;
+    }
+
+    public enable(id: any): void {
+        const entry = this.registry.get(id);
+        if (entry) entry.enabled = true;
+    }
+
+    public disable(id: any): void {
+        const entry = this.registry.get(id);
+        if (entry) entry.enabled = false;
     }
 }
 

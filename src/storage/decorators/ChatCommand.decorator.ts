@@ -66,7 +66,7 @@ const logger = new Logger('ChatCommandDecorator');
 //     }
 // }
 
-const chatCommandsContainer = GeneralContainer.getInstance<GeneralFactory, ChatCommandExecution>();
+export const chatCommandsContainer = GeneralContainer.getInstance<GeneralFactory, ChatCommandExecution>();
 const chatCommandRegistry = GeneralRegistry.getInstance<ChatCommandInstance, ChatCommandDecoratorOptions>();
 
 // Decorator
@@ -87,7 +87,8 @@ export function ChatCommand(options: ChatCommandDecoratorOptions): ClassDecorato
         chatCommandsContainer.set({
             id: target,
             factory: () => new target(),
-            transient: allOptions.transistent
+            transient: allOptions.transistent,
+            enabled: false // Default disabled (enable by setting in TwitchBotFramework)
         });
 
         const instance = chatCommandsContainer.get(target) as ChatCommandInstance;
@@ -177,7 +178,12 @@ export async function CommandHandler(data: ChannelChatMessageEventData): Promise
     const command = map.find(m => m.keywords.includes(commandKeyword) || m.keywords.includes(commandKeywordLower));
     if(!command) return;
 
-    const instance = chatCommandsContainer.get(command.entry.target) as ChatCommandInstance;
+    let instance: ChatCommandInstance;
+    try {
+        instance = chatCommandsContainer.get(command.entry.target, true) as ChatCommandInstance;
+    } catch (error) {
+        return;
+    }
     const methods = command.entry.methods;
 
     try {

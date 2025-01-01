@@ -2,7 +2,8 @@ import UserCacheManager from "./cache/managers/UserCache.manager";
 import APIClient from "./clients/Api.client";
 import EventSubClient from "./clients/EventSub.client";
 import { TokenService } from "./services/Token.service";
-import { getAllKeywords } from "./storage/decorators/ChatCommand.decorator";
+import { chatCommandsContainer, getAllKeywords } from "./storage/decorators/ChatCommand.decorator";
+import { chatListenersContainer } from "./storage/decorators/ChatListener.decorator";
 import { StaticChannels } from "./storage/predefined/StaticChannels.repository";
 import { ListenChannelsRepository } from "./storage/repository/ListenChannels.repository";
 import { TokenRepository } from "./storage/repository/Token.repository";
@@ -59,6 +60,15 @@ export default class TwitchBotFramework {
         data.clientId.set(options.bot.clientId);
         data.clientSecret.set(options.bot.clientSecret);
         data.userId.set(options.bot.userId);
+
+        // Enable chat commands and listeners
+        if(options.chat.commands) {
+            options.chat.commands.forEach(command => chatCommandsContainer.enable(command));
+        }
+
+        if(options.chat.listeners) {
+            options.chat.listeners.forEach(listener => chatListenersContainer.enable(listener));
+        }
 
         // Init data
         this.channelRefreshInterval = options.channels.refreshInterval || this.channelRefreshInterval;
