@@ -1,6 +1,6 @@
 {
   "name": "twitch-bot-framework",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Framework for creating a bot for twitch",
   "author": "kajahl",
   "homepage": "https://github.com/kajahl/twitch-bot-framework",
