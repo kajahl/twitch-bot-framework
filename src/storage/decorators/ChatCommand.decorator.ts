@@ -180,23 +180,27 @@ export async function CommandHandler(data: ChannelChatMessageEventData): Promise
     const instance = chatCommandsContainer.get(command.entry.target) as ChatCommandInstance;
     const methods = command.entry.methods;
 
-    if(methods.includes('guard')) {
-        const guardResult = await instance.guard({ event: data });
-        if(!guardResult.canAccess) {
-            console.log(`Guard failed for command ${command.entry.options.name} for user ${data.chatter_user_login} in channel ${data.broadcaster_user_login}`);
-            const chat = await Chat.byId(data.broadcaster_user_id);
-            chat.message.send(`@${data.chatter_user_login}, ${guardResult.message}`, data.message_id);
-            return;
+    try {
+        if(methods.includes('guard')) {
+            const guardResult = await instance.guard({ event: data });
+            if(!guardResult.canAccess) {
+                logger.log(`Guard failed for command ${command.entry.options.name} for user ${data.chatter_user_login} in channel ${data.broadcaster_user_login}`);
+                const chat = await Chat.byId(data.broadcaster_user_id);
+                chat.message.send(`@${data.chatter_user_login}, ${guardResult.message}`, data.message_id);
+                return;
+            }
         }
-    }
-
-    if(methods.includes('preExecution')) {
-        await instance.preExecution({ event: data });
-    }
-
-    await instance.execution({ event: data });
-
-    if(methods.includes('postExecution')) {
-        await instance.postExecution({ event: data });
+    
+        if(methods.includes('preExecution')) {
+            await instance.preExecution({ event: data });
+        }
+    
+        await instance.execution({ event: data });
+    
+        if(methods.includes('postExecution')) {
+            await instance.postExecution({ event: data });
+        }
+    } catch (error) {
+        logger.error(`Error while executing command ${command.entry.options.name}: ${error}`);
     }
 }
