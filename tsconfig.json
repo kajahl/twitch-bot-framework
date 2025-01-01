@@ -11,10 +11,10 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "outDir": "./dist",
-        "rootDir": "./src",
+        "rootDir": ".",
         "declaration": true,
         "lib": ["es2021"]
     },
-    "include": ["src/**/*", "src/types"],
+    "include": ["src/**/*", "src/types", "index.ts"],
     "exclude": ["node_modules", "dist"]
 }
