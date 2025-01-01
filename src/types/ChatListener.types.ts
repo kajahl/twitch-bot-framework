@@ -16,11 +16,11 @@ export type ChatListenerDecoratorOptions = {
 // Execution
 
 export type ChatListenerExecution = {
-    execution: (data: ChatCommandExecutionData, ...args: any[]) => TorPromiseT<any>;
+    execution: (data: ChatListenerExecutionData, ...args: any[]) => TorPromiseT<any>;
 };
 
 // Params
 
-export type ChatCommandExecutionData = {
+export type ChatListenerExecutionData = {
     event: ChannelChatMessageEventData;
 };
