@@ -133,7 +133,6 @@ function getKeywordsCommandMap() : Map {
 
 function detectDuplicates(keywords: string[]): boolean {
     const uniqueKeywords = new Set(keywords);
-    console.log(keywords, uniqueKeywords);
     return keywords.length != uniqueKeywords.size;
 }
 
