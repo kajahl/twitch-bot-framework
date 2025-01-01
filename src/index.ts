@@ -1,16 +1,16 @@
 // Main modules
-import TwitchBotFramework from './src/TwitchBotFramework';
+import TwitchBotFramework from './/TwitchBotFramework';
 
 // Repository patterns
-import { ListenChannelsRepository } from './src/storage/repository/ListenChannels.repository';
-import { TokenRepository } from './src/storage/repository/Token.repository';
+import { ListenChannelsRepository } from './/storage/repository/ListenChannels.repository';
+import { TokenRepository } from './/storage/repository/Token.repository';
 
 // Predefined strategies
-import InMemoryTokenRepository from './src/storage/predefined/InMemoryToken.repository';
+import InMemoryTokenRepository from './/storage/predefined/InMemoryToken.repository';
 
 // Twitch objects
-import Chat from './src/objects/Chat';
-import User from './src/objects/User';
+import Chat from './/objects/Chat';
+import User from './/objects/User';
 
 // Command interfaces
 import {  
@@ -20,28 +20,28 @@ import {
     ChatCommandExecution, 
     ChatCommandPostExecution, 
     ChatCommandExecutionData,
-} from './src/types/ChatCommand.types';
+} from './/types/ChatCommand.types';
 
 // Listener interfaces
 import { 
     ChatListenerExecution, 
     ChatListenerExecutionData
-} from './src/types/ChatListener.types';
+} from './/types/ChatListener.types';
 
 // Example commands / listeners
-import PingCommand from './src/example/commands/Ping.command';
-import ExampleCommand from './src/example/commands/Example.command';
-import CounterListener from './src/example/listeners/Counter.listener';
-import ShowMessageListener from './src/example/listeners/ShowMessage.listener';
+import PingCommand from './/example/commands/Ping.command';
+import ExampleCommand from './/example/commands/Example.command';
+import CounterListener from './/example/listeners/Counter.listener';
+import ShowMessageListener from './/example/listeners/ShowMessage.listener';
 
 // Decorator Types
-import { ChatCommandDecoratorOptions } from './src/types/ChatCommand.types';
-import { ChatListenerDecoratorOptions } from './src/types/ChatListener.types';
+import { ChatCommandDecoratorOptions } from './/types/ChatCommand.types';
+import { ChatListenerDecoratorOptions } from './/types/ChatListener.types';
 
 // Other Types
 import ChannelChatMessageEventData, {
     Message, MessageFragment, Badge, BadgeSetId
-} from './src/types/EventSub_Events/ChannelChatMessageEventData.types';
+} from './/types/EventSub_Events/ChannelChatMessageEventData.types';
 
 // Export
 export default TwitchBotFramework;
