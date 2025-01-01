@@ -1,0 +1,9 @@
+/src
+*.ts
+.git
+node_modules
+.eslintrc.json
+.prettierrc
+tsconfig.json
+tsup.config.ts
+yarn.lock
