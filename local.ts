@@ -5,7 +5,7 @@ import TwitchBotFramework, {
     ExampleCommand,
     CounterListener,
     ShowMessageListener
-} from './index.ts';
+} from './index';
 
 import dotenv from 'dotenv';
 dotenv.config();
