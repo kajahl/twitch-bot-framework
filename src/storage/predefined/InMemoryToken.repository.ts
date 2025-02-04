@@ -1,18 +1,16 @@
-import { AppToken, TokenRepository, UserToken } from "../repository/Token.repository";
+import { AppToken, ITokenRepository, UserToken } from "../repository/Token.repository";
 import dotenv from 'dotenv';
-import DataStorage from "../runtime/Data.storage";
 dotenv.config();
 
-export default class InMemoryTokenRepository implements TokenRepository {
+export default class InMemoryTokenRepository implements ITokenRepository {
     private appAccessToken: AppToken | null = null;
     private userAccessTokens: Map<string, UserToken> = new Map();
     private userRefreshTokens: Map<string, string> = new Map();
 
     constructor() {
-        const userId = DataStorage.getInstance().userId.get();
-        if(userId === null) throw new Error('User id is not set');
+        const userId = process.env.USER_ID;
         const userRefreshToken = process.env.USER_REFRESH_TOKEN;
-        if(userRefreshToken === undefined) throw new Error('User refresh token is not set');
+        if(!userId || !userRefreshToken) throw new Error('USER_ID and USER_REFRESH_TOKEN environment variables must be set if using InMemoryTokenRepository');
         this.userRefreshTokens.set(userId, userRefreshToken);
     }
 

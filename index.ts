@@ -2,15 +2,10 @@
 import TwitchBotFramework from './src/TwitchBotFramework';
 
 // Repository patterns
-import { ListenChannelsRepository } from './src/storage/repository/ListenChannels.repository';
-import { TokenRepository } from './src/storage/repository/Token.repository';
+import { ITokenRepository } from './src/storage/repository/Token.repository';
 
 // Predefined strategies
 import InMemoryTokenRepository from './src/storage/predefined/InMemoryToken.repository';
-
-// Twitch objects
-import Chat from './src/objects/Chat';
-import User from './src/objects/User';
 
 // Command interfaces
 import {  
@@ -35,8 +30,8 @@ import CounterListener from './src/example/listeners/Counter.listener';
 import ShowMessageListener from './src/example/listeners/ShowMessage.listener';
 
 // Decorator Types
-import { ChatCommand } from './src/storage/decorators/ChatCommand.decorator';
-import { ChatListener } from './src/storage/decorators/ChatListener.decorator';
+import { ChatCommand } from './src/decorators/ChatCommand.decorator';
+import { ChatListener } from './src/decorators/ChatListener.decorator';
 import { ChatCommandDecoratorOptions } from './src/types/ChatCommand.types';
 import { ChatListenerDecoratorOptions } from './src/types/ChatListener.types';
 
@@ -48,9 +43,8 @@ import ChannelChatMessageEventData, {
 // Export
 export default TwitchBotFramework;
 export {
-    ListenChannelsRepository, TokenRepository,
+    ITokenRepository,
     InMemoryTokenRepository,
-    Chat, User,
     ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPreExecution, ChatCommandExecution, ChatCommandPostExecution, ChatCommandExecutionData,
     ChatListenerExecution, ChatListenerExecutionData,
     ChatCommandDecoratorOptions, ChatListenerDecoratorOptions, ChatCommand, ChatListener,

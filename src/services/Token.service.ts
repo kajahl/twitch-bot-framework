@@ -1,26 +1,29 @@
 import axios from "axios";
 import AccessTokenRequestConfigBuilder from "../builders/tokens/AccessTokenRequestConfig.builder";
-import { AppToken, TokenRepository, UserToken } from "../storage/repository/Token.repository";
-import DataStorage from "../storage/runtime/Data.storage";
+import { AppToken, ITokenRepository, UserToken } from "../storage/repository/Token.repository";
 import Logger from "../utils/Logger";
 import TwtichPermissionScope from "../enums/TwitchPermissionScope.enum";
-import UserCacheManager from "../cache/managers/UserCache.manager";
+// import UserCacheManager from "../cache/managers/UserCache.manager";
+import TwitchBotFramework from "../TwitchBotFramework";
+import { ITwitchBotConfig } from "../decorators/TwitchBot.decorator";
+import { InstanceService } from "../decorators/InstanceService.decorator";
 
 const logger = new Logger('TokenService');
 
+@InstanceService()
 export class TokenService {
-    private static instance: TokenService;
-    public static init(tokenRepository: TokenRepository): TokenService {
-        TokenService.instance = new TokenService(tokenRepository);
-        return TokenService.instance;
-    }
-    public static getInstance(): TokenService {
-        return TokenService.instance;
-    }
+    private readonly clientSecret: string;
+    private readonly clientId: string;
+    private tokenRepository: ITokenRepository;
 
-    private constructor(
-        private tokenRepository: TokenRepository
-    ) {}
+    constructor(
+        private readonly botInstance: TwitchBotFramework
+    ) {
+        const options : ITwitchBotConfig = Reflect.getMetadata('config', botInstance);
+        this.clientId = options.clientId;
+        this.clientSecret = options.clientSecret;
+        this.tokenRepository = new options.tokenRepository();
+    }
 
     private isExpired(timestamp: number, expiresIn: number): boolean {
         const now = Date.now();
@@ -39,10 +42,9 @@ export class TokenService {
 
         // else: Generate new token
         logger.log(`AppToken is expired or not saved. Requesting new app access token...`);
-        const data = DataStorage.getInstance();
         const accessTokenRequestConfig = new AccessTokenRequestConfigBuilder()
-            .setClientId(data.clientId.get() as string)
-            .setClientSecret(data.clientSecret.get() as string)
+            .setClientId(this.clientId)
+            .setClientSecret(this.clientSecret)
             .forClient()
             .build();
 
@@ -87,10 +89,9 @@ export class TokenService {
 
         // else: Generate new token
         logger.log(`Found refresh token for user id=${userId}. Requesting new access token...`);
-        const data = DataStorage.getInstance();
         const accessTokenRequestConfig = new AccessTokenRequestConfigBuilder()
-            .setClientId(data.clientId.get() as string)
-            .setClientSecret(data.clientSecret.get() as string)
+            .setClientId(this.clientId)
+            .setClientSecret(this.clientSecret)
             .forUser(refreshToken)
             .build();
 
@@ -141,16 +142,16 @@ export class TokenService {
         return userToken.access_token
     }
 
-    public async getUserTokenByNickname(nickname: string): Promise<string | null> {
-        const user = await UserCacheManager.getInstance().getByName(nickname);
-        if(user === null) return null;
-        return this.getUserTokenById(user.id);
-    }
+    // public async getUserTokenByNickname(nickname: string): Promise<string | null> {
+    //     const user = await UserCacheManager.getInstance().getByName(nickname);
+    //     if(user === null) return null;
+    //     return this.getUserTokenById(user.id);
+    // }
 
-    public async getUserTokenWithScopesByNickname(nickname: string, scope: TwtichPermissionScope[]): Promise<string | null> {
-        const user = await UserCacheManager.getInstance().getByName(nickname);
-        if(user === null) return null;
-        return this.getUserTokenWithScopesById(user.id, scope);
-    }
+    // public async getUserTokenWithScopesByNickname(nickname: string, scope: TwtichPermissionScope[]): Promise<string | null> {
+    //     const user = await UserCacheManager.getInstance().getByName(nickname);
+    //     if(user === null) return null;
+    //     return this.getUserTokenWithScopesById(user.id, scope);
+    // }
     
 }

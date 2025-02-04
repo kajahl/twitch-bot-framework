@@ -18,7 +18,7 @@ Zarządzanie tokenami użytkowników:
 - istnieje również możliwość, że refreshToken / accessToken mimo tego że nie wygasł, to użytkownik de-autoryzował aplikacje - wtedy należy usunąć accessToken jeżeli istnieje oraz refreshToken z repozytorium, aby nie próbować odświeżać tokenu
 */
 
-export type TokenRepository = {
+export interface ITokenRepository {
     // App / Client
     getAppToken(): Promise<AppToken | null>;
     saveAppToken(token: AppToken): Promise<void>;

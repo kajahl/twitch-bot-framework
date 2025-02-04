@@ -1,11 +1,10 @@
-import DataStorage from "../storage/runtime/Data.storage";
 import { NotificationPayload, RevocationPayload, WebsocketMessage, WebsocketMessageType, WelcomePayload } from "../types/Websocket.types";
 import Logger from "../utils/Logger";
 import { WebSocket } from "ws";
 import EventSubClient from "./EventSub.client";
-import { CommandHandler } from "../storage/decorators/ChatCommand.decorator";
+import { CommandHandler } from "../decorators/ChatCommand.decorator";
 import TwitchEventId from "../enums/TwitchEventId.enum";
-import { ListenerHandler } from "../storage/decorators/ChatListener.decorator";
+import { ListenerHandler } from "../decorators/ChatListener.decorator";
 
 const logger = new Logger('WebsocketClient');
 
@@ -13,8 +12,12 @@ export default class WebsocketClient {
     private websocketClient: WebSocket | null = null;
 
     constructor(
-        private readonly eventSubClient: EventSubClient
-    ) {}
+        private readonly eventSubClient: EventSubClient,
+        private onWebsocketConnected: (sessionId: string) => void,
+        private onWebsocketDisconnected: () => void
+    ) {
+        this._connect();
+    }
 
     // Keepalive
     private lastKeepAliveTimestamp: number = 0;
@@ -81,7 +84,7 @@ export default class WebsocketClient {
     private _disconnect() {
         if (this.websocketClient == null) return;
         if (this.keepAliveInterval != null) clearTimeout(this.keepAliveInterval);
-        DataStorage.getInstance().websocketId.set(null);
+        this.onWebsocketDisconnected();
         this.websocketClient.close();
         this.websocketClient = null;
     }
@@ -112,7 +115,7 @@ export default class WebsocketClient {
     
     private handleWelcomeMessage(welcomeMessage: WebsocketMessage<WelcomePayload>) {
         const websocketWelcome = welcomeMessage as WebsocketMessage<WelcomePayload>;
-        DataStorage.getInstance().websocketId.set(websocketWelcome.payload.session.id);
+        this.onWebsocketConnected(websocketWelcome.payload.session.id);
         this.setupKeepAlive(websocketWelcome.payload.session.keepalive_timeout_seconds * 1000);
         return;
     }

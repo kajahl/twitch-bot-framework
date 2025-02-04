@@ -1,5 +1,4 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
-import DataStorage from "../storage/runtime/Data.storage";
 import { GeneralResponseBody, GeneralResponseError } from "../types/APIClient.types";
 import RateLimiterService from "../services/RateLimiter.service";
 
@@ -10,14 +9,12 @@ export default abstract class TemplateBuilder<ResponseType> {
     private getUserIdRelatedToToken: () => string;
 
     constructor(method: Method, url: string, data: any, getUserIdRelatedToToken: typeof this.getUserIdRelatedToToken) {
-        const clientId = DataStorage.getInstance().clientId.get();
-        if(clientId == null) throw new Error('Client ID is required');
         this.config = {
             url,
             method,
             headers: {
                 Authorization: null,
-                "Client-Id": clientId,
+                "Client-Id": null,
                 "Content-Type": "application/json"
             },
             data

@@ -1,4 +1,4 @@
-import { ChatListener } from "../../storage/decorators/ChatListener.decorator";
+import { ChatListener } from "../../decorators/ChatListener.decorator";
 import { ChatListenerExecution } from "../../types/ChatListener.types";
 
 @ChatListener({

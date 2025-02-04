@@ -1,24 +1,26 @@
 import APIClient from "../../clients/Api.client";
+import { getServiceInstance, InstanceService } from "../../decorators/InstanceService.decorator";
 import { TokenService } from "../../services/Token.service";
+import TwitchBotFramework from "../../TwitchBotFramework";
 import Logger from "../../utils/Logger";
 import { LRUCache } from "../models/LRUCache.storage";
 
 const logger = new Logger('UserCacheManager')
 
 type T = TwitchUser;
+
+@InstanceService()
 export default class UserCacheManager extends LRUCache<T> {
-    private static instance: UserCacheManager;
-    public static getInstance(): UserCacheManager {
-        return UserCacheManager.instance;
-    }
-    public static init(tokenService: TokenService): UserCacheManager {
-        UserCacheManager.instance = new UserCacheManager(tokenService);
-        return UserCacheManager.instance;
-    }
+    private tokenService: TokenService
+    private apiClient: APIClient;
+
     private constructor(
-        private tokenService: TokenService
+        private readonly botInstance: TwitchBotFramework
     ) {
         super({ ttl: 300 });
+        const options = Reflect.getMetadata('config', botInstance);
+        this.tokenService = getServiceInstance(TokenService, options.userId);
+        this.apiClient = getServiceInstance(APIClient, options.userId);
     }
 
     async findIdByUsername(username: string): Promise<string | null> {
@@ -34,8 +36,7 @@ export default class UserCacheManager extends LRUCache<T> {
             return userFromCache;
         }
         // API Request
-        const appApi = await APIClient.asApp();
-        const user = await appApi.user.getByLogin(username);
+        const user = await this.apiClient.user.getByLogin(username);
         if(user === null) return null;
         logger.log(`Retrieved data for user nickname=${username}`);
         this.set(user.id, user);
@@ -49,8 +50,7 @@ export default class UserCacheManager extends LRUCache<T> {
             return userFromCache;
         }
         // API Request
-        const appApi = await APIClient.asApp();
-        const user = await appApi.user.getById(id);
+        const user = await this.apiClient.user.getById(id);
         if(user === null) return null;
         logger.log(`Retrieved data for user nickname=${id}`);
         this.set(id, user);

@@ -1,43 +1,47 @@
 import GetUsersRequestConfigBuilder from '../builders/api/GetUsersRequestConfig.builder';
-import DataStorage from '../storage/runtime/Data.storage';
 import { TokenService } from '../services/Token.service';
 import GetModeratorsRequestConfigBuilder from '../builders/api/GetModeratorsRequestConfig.builder';
 import RateLimiterService from '../services/RateLimiter.service';
 import { TwitchUser } from '../cache/managers/UserCache.manager';
+import TwitchBotFramework from '../TwitchBotFramework';
+import { getServiceInstance, InstanceService } from '../decorators/InstanceService.decorator';
 
+/*
+
+APIClient służy TYLKO do wywołań z tokenem userId (czyli użytkownika bota) lub tokenem aplikacji (czyli klienta).
+
+*/
+
+@InstanceService()
 export default class APIClient {
-    static async asUserId(userId: string) {
-        const tokenService = TokenService.getInstance();
-        const userToken = await tokenService.getUserTokenById(userId);
-        if (!userToken) throw new Error(`User token not found by userId=${userId}`);
-        return new APIClient(userToken, true, userId);
-    }
+    private clientId: string;
+    private userId: string;
+    private tokenService: TokenService;
 
-    static async asApp() {
-        const tokenService = TokenService.getInstance();
-        const appToken = await tokenService.getAppToken();
-        return new APIClient(appToken, false);
-    }
-
-    private data: DataStorage;
     private constructor(
-        private token: string,
-        private isUserToken: boolean = false,
-        private userId: string = '',
+        private readonly botInstance: TwitchBotFramework
     ) {
-        this.data = DataStorage.getInstance();
+        const options = Reflect.getMetadata('config', botInstance);
+        this.clientId = options.clientId;
+        this.userId = options.userId;
+        this.tokenService = getServiceInstance(TokenService, this.userId)
     }
 
-    private getRateLimiter() {
-        return this.isUserToken ? RateLimiterService.forUser(this.userId) : RateLimiterService.forApp();
+    private async getAppAccessToken() : Promise<string> {
+        return this.tokenService.getAppToken();
+    }
+
+    private async getUserAccessToken() : Promise<string | null> {
+        return this.tokenService.getUserTokenById(this.userId);
     }
 
     get user() {
         return {
             get: async (params: { ids?: string[]; logins?: string[] }): Promise<TwitchUser[]> => {
+                const token = await this.getAppAccessToken();
                 const data = await new GetUsersRequestConfigBuilder()
-                    .setClientId(this.data.clientId.get() as string)
-                    .setAccessToken(this.token)
+                    .setClientId(this.clientId)
+                    .setAccessToken(token)
                     .addLogins(params.logins || [])
                     .addUserIds(params.ids || [])
                     .make();
@@ -58,17 +62,17 @@ export default class APIClient {
         };
     }
 
-    async getModerators(channelId: string) {
-        if(!this.isUserToken) throw new Error('User token is required');
-        // TODO: Pagination
-        const data = await new GetModeratorsRequestConfigBuilder()
-            .setAccessToken(this.token)
-            .setClientId(this.data.clientId.get() as string)
-            .setBroadcasterId(channelId)
-            .setUserId(this.userId)
-            .make();
-        return data;
-    }
+    // async getModerators(channelId: string) {
+    //     if(!this.isUserToken) throw new Error('User token is required');
+    //     // TODO: Pagination
+    //     const data = await new GetModeratorsRequestConfigBuilder()
+    //         .setAccessToken(this.token)
+    //         .setClientId(this.data.clientId.get() as string)
+    //         .setBroadcasterId(channelId)
+    //         .setUserId(this.userId)
+    //         .make();
+    //     return data;
+    // }
 }
 
 // Temp location
