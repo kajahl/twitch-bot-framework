@@ -3,7 +3,7 @@ import CreateEventSubscriptionRequestConfigBuilder from '../builders/eventsub/Cr
 import TwitchEventId from '../enums/TwitchEventId.enum';
 import { TokenService } from '../services/Token.service';
 import { MappedTwitchEventId, TwitchEventData } from '../types/EventSub.types';
-import Logger from '../utils/Logger';
+import { Logger, LoggerFactory } from '../utils/Logger';
 import WebsocketClient from './Websocket.client';
 import { CreateSubscriptionResponse, DeleteSubscriptionResponse } from '../types/APIClient.types';
 import SubscribedEventListRequestConfigBuilder from '../builders/eventsub/SubscribedEventListRequestConfig.builder';
@@ -14,25 +14,27 @@ import { Inject, Service } from 'typedi';
 import DINames from '../utils/DI.names';
 import ConfigService from '../services/Config.service';
 
-const logger = new Logger('EventSubClient');
-
 @Service(DINames.EventSubClient)
 export default class EventSubClient {
     private readonly clientId: string;
     private readonly userId: string;
+    private readonly logger: Logger;
     private websocketClient: WebsocketClient;
     private channelProvider: IChannelProvider;
 
     private constructor(
         @Inject(DINames.ConfigService) private readonly config: ConfigService,
-        @Inject(DINames.TokenService) private readonly tokenService: TokenService
+        @Inject(DINames.TokenService) private readonly tokenService: TokenService,
+        @Inject(DINames.LoggerFactory) private readonly loggerFactory: LoggerFactory
     ) {
+        this.logger = loggerFactory.createLogger('EventSubClient');
         const options = config.getConfig();
         this.clientId = options.clientId;
         this.userId = options.userId;
-        this.websocketClient = new WebsocketClient(this, this.onWebsocketConnected.bind(this), this.onWebsocketDisconnected.bind(this));
+        this.websocketClient = new WebsocketClient(this, this.onWebsocketConnected.bind(this), this.onWebsocketDisconnected.bind(this), this.loggerFactory);
         
         this.channelProvider = new options.channelProvider();
+        this.logger.debug('Initialized');
     }
 
     // Komunikacja z websocketem
@@ -56,40 +58,48 @@ export default class EventSubClient {
             channels.push(options.userId);
         }
 
-        logger.log(`Checking listeners for channels=${channels.join(',')}`);
+        this.logger.info(`Checking listeners for channels=${channels.join(',')}`);
         const channelsToSubscribe = channels.filter(channel => !this.channelList.includes(channel));
         const channelsToUnsubscribe = this.channelList.filter(channel => !channels.includes(channel));
 
         const subscribePromises = channelsToSubscribe.map(async channel => {
-            logger.log(`Subscribing to chat events for channel=${channel}...`);
+            this.logger.info(`Subscribing to chat events for channel=${channel}...`);
             const promise = this.listenChat(channel);
             promise.then((data) => {
-                logger.log(`Successfully subscribed to chat events for channel=${channel}`);
+                this.logger.info(`Successfully subscribed to chat events for channel=${channel}`);
             }).catch((err) => {
-                logger.error(`Failed to subscribe to chat events for channel=${channel} - ${err}`);
+                this.logger.error(`Failed to subscribe to chat events for channel=${channel} - ${err}`);
             });
             return promise;
         });
         
         const unsubscribePromises = channelsToUnsubscribe.map(async channel => {
-            logger.log(`Unsubscribing from chat events for channel=${channel}...`);
+            this.logger.info(`Unsubscribing from chat events for channel=${channel}...`);
             const promise = this.unlistenChat(channel);
             promise.then((data) => {
-                logger.log(`Successfully unsubscribed from chat events for channel=${channel}`);
+                this.logger.info(`Successfully unsubscribed from chat events for channel=${channel}`);
             }).catch((err) => {
-                logger.error(`Failed to unsubscribe from chat events for channel=${channel} - ${err}`);
+                this.logger.error(`Failed to unsubscribe from chat events for channel=${channel} - ${err}`);
             });
             return promise;
         });
 
         await Promise.all([...subscribePromises, ...unsubscribePromises]).catch((err) => {
-            logger.error(`Failed to setup chat listeners - ${err}`);
+            this.logger.error(`Failed to setup chat listeners - ${err}`);
         });
 
         this.channelList = channels;
     }
 
-    // Metody do subskrybowania i odsubskrybowania
+    /**
+     * Subscribes to an event
+     * @param type Event type {@link TwitchEventId}
+     * @param condition Event condition {@link TwitchEventData}
+     * @param version Event version
+     * @param token Access token
+     * @returns Result {@link CreateSubscriptionResponse}
+     * @throws Error if subscription failed
+     */
     private async subscribe<T extends MappedTwitchEventId>(
         type: T, 
         condition: TwitchEventData<T>['condition'], 
@@ -106,8 +116,12 @@ export default class EventSubClient {
             .setSessionId(this.weboscketSessionId)
             .build();
         const response = await axios.request<CreateSubscriptionResponse>(requestConfig);
-        if (response.status !== 202) throw new Error(`Failed to subscribe to event ${type}`);
-        logger.log(`New subscription (${response.data.data[0].id}) to event ${type} with condition ${JSON.stringify(condition)}`);
+        if (response.status !== 202) {
+            const errorMessage = `Failed to subscribe to event ${type} with condition ${JSON.stringify(condition)}`
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+        this.logger.debug(`New subscription (${response.data.data[0].id}) to event ${type} with condition ${JSON.stringify(condition)}`);
         return response.data;
     }
 
@@ -123,6 +137,8 @@ export default class EventSubClient {
     /**
      * Unsuscribe from an event
      * @param id Subscription ID
+     * @returns Result {@link DeleteSubscriptionResponse}
+     * @throws Error if unsubscription failed
      */
     private async unsubscribe(
         id: string,
@@ -134,13 +150,21 @@ export default class EventSubClient {
             .setSubscriptionId(id)
             .build();
         const response = await axios.request<DeleteSubscriptionResponse>(requestConfig);
-        if (response.status !== 204) throw new Error(`Failed to unsubscribe from event ${id}`);
-        logger.log(`Unsubscribed from event ${id}`);
+        if (response.status !== 204) {
+            const errorMessage = `Failed to unsubscribe from event ${id}`;
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+        this.logger.debug(`Unsubscribed from event ${id}`);
         return response.data;
     }
 
-    // Specyficznne metody do subskrybowania eventów
+    // Specyfic methods for events
 
+    /**
+     * Subscribes to chat events
+     * //TODO
+     */
     async listenChat(channelId: string, asUserId: string = this.userId) {
         const userTokenObject = await this.tokenService.getUserTokenObjectById(asUserId);
         if(!userTokenObject) throw new Error('User token not found');
@@ -157,10 +181,16 @@ export default class EventSubClient {
             (2 - chyba) user:read:chat + userAccessToken
         ALE najlepiej rozwiązać to tak - użytkownik, który jest botem MUSI mieć scope user:bot i channel:bot
         */
-        if(!userTokenObject.scope.includes(TwtichPermissionScope.UserBot)) 
-            throw new Error(`User token does not have required scope user:bot (avaliable scopes: ${userTokenObject.scope.join(', ')})`);
-        if(!userTokenObject.scope.includes(TwtichPermissionScope.ChannelBot)) 
-            throw new Error(`User token does not have required scope channel:bot (avaliable scopes: ${userTokenObject.scope.join(', ')})`);
+        if(!userTokenObject.scope.includes(TwtichPermissionScope.UserBot)) {
+            const errorMessage = `User token does not have required scope user:bot (avaliable scopes: ${userTokenObject.scope.join(', ')})`;
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+        if(!userTokenObject.scope.includes(TwtichPermissionScope.ChannelBot)) {
+            const errorMessage = `User token does not have required scope channel:bot (avaliable scopes: ${userTokenObject.scope.join(', ')})`;
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
+        }
 
         return this.subscribe(TwitchEventId.ChannelChatMessage, {
             broadcaster_user_id: channelId,
@@ -168,6 +198,10 @@ export default class EventSubClient {
         }, 1, userTokenObject.access_token);
     }
 
+    /**
+     * Unsubscribes from chat events
+     * //TODO
+     */
     async unlistenChat(channelId: string, asUserId: string = this.userId) {
         const userTokenObject = await this.tokenService.getUserTokenObjectById(asUserId);
         if(!userTokenObject) throw new Error('User token not found');

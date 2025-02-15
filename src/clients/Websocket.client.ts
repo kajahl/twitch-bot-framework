@@ -1,22 +1,25 @@
 import { NotificationPayload, RevocationPayload, WebsocketMessage, WebsocketMessageType, WelcomePayload } from "../types/Websocket.types";
-import Logger from "../utils/Logger";
+import { Logger, LoggerFactory } from "../utils/Logger";
 import { WebSocket } from "ws";
 import EventSubClient from "./EventSub.client";
 import { CommandHandler } from "../decorators/ChatCommand.decorator";
 import TwitchEventId from "../enums/TwitchEventId.enum";
 import { ListenerHandler } from "../decorators/ChatListener.decorator";
 
-const logger = new Logger('WebsocketClient');
-
 export default class WebsocketClient {
     private websocketClient: WebSocket | null = null;
+    private readonly logger: Logger;
 
     constructor(
         private readonly eventSubClient: EventSubClient,
         private onWebsocketConnected: (sessionId: string) => void,
-        private onWebsocketDisconnected: () => void
+        private onWebsocketDisconnected: () => void,
+        readonly loggerFactory: LoggerFactory
     ) {
+        this.logger = loggerFactory.createLogger('WebsocketClient');
         this._connect();
+        
+        this.logger.debug('Initialized');
     }
 
     // Keepalive
@@ -38,9 +41,9 @@ export default class WebsocketClient {
         this.keepAliveInterval = setInterval(() => {
             const currentTimestamp = Date.now();
             const difference = currentTimestamp - this.lastKeepAliveTimestamp;
-            logger.log(`Checking WebSocket keepalive (Last keepalive: ${difference}/${this.keepAliveIntervalMs + this.keepAliveIntervalMsOffset}ms)`);
+            this.logger.debug(`Checking WebSocket keepalive (Last keepalive: ${difference}/${this.keepAliveIntervalMs + this.keepAliveIntervalMsOffset}ms)`);
             if (difference > this.keepAliveIntervalMs + this.keepAliveIntervalMsOffset) {
-                logger.log(`WebSocket connection keepalive timeout.${this.reconnectOnTimeout ? ' Reconnecting...' : ''}`);
+                this.logger.warn(`WebSocket connection keepalive timeout.${this.reconnectOnTimeout ? ' Reconnecting...' : ''}`);
                 if(this.reconnectOnTimeout) this._connect(true);
                 return;
             }
@@ -58,7 +61,7 @@ export default class WebsocketClient {
         this.websocketClient = new WebSocket('wss://eventsub.wss.twitch.tv/ws');
 
         this.websocketClient.on('open', () => {
-            logger.log('Connected to EventSub WebSocket');
+            this.logger.info('Connected to EventSub WebSocket');
         });
 
         this.websocketClient.on('message', (data) => {
@@ -69,13 +72,13 @@ export default class WebsocketClient {
         });
 
         this.websocketClient.on('close', () => {
-            logger.log('Disconnected from EventSub WebSocket');
+            this.logger.warn('Disconnected from EventSub WebSocket');
             this._disconnect();
             if (this.reconnectOnClose) setTimeout(() => this.connect(), this.reconnectTimeout);
         });
 
         this.websocketClient.on('error', (err) => {
-            logger.error(JSON.stringify(err));
+            this.logger.error(JSON.stringify(err));
             this._disconnect();
             if (this.reconnectOnError) setTimeout(() => this.connect(), this.reconnectTimeout);
         });
@@ -95,7 +98,7 @@ export default class WebsocketClient {
         try {
             this._connect();
         } catch (e) {
-            logger.error(JSON.stringify(e));
+            this.logger.error(JSON.stringify(e));
             return false;
         }
         return true;

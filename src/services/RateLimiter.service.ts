@@ -25,15 +25,20 @@ If you receive HTTP status code 429, use the Ratelimit-Reset header to learn how
 
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import { RequestPriority, RequestQueueItem, TwitchRatelimitState } from "../types/RateLimiter.types";
-import Logger from "../utils/Logger";
+import { Logger, LoggerFactory } from "../utils/Logger";
 import TimeCounter from "../utils/TimeCounter";
-import { Service } from "typedi";
+import { Inject, Service } from "typedi";
+import DINames from "../utils/DI.names";
 
-const logger = new Logger('RateLimiterService');
-
-@Service('RATE_LIMITER_SERVICE')
+@Service(DINames.RateLimiterService)
 export default class RateLimiterService {
-    private constructor() {}
+    private readonly logger: Logger;
+
+    private constructor(
+        @Inject(DINames.LoggerFactory) private readonly loggerFactory: LoggerFactory
+    ) {
+        this.logger = this.loggerFactory.createLogger('RateLimiterService');
+    }
 
     // private static instances: Map<string, RateLimiterService> = new Map();
     // static forUser(userId: string | 'app') {
@@ -71,7 +76,7 @@ export default class RateLimiterService {
                 if(record == undefined) {
                     clearInterval(this.interval as NodeJS.Timeout);
                     this.interval = null;
-                    logger.log(`The query queue has been processed. Normal operation has been resumed.`);
+                    this.logger.log(`The query queue has been processed. Normal operation has been resumed.`);
                     break;
                 }
                 record.sendRequest();
@@ -97,7 +102,7 @@ export default class RateLimiterService {
     ): Promise<AxiosResponse<ResponseData>> {
         const requestId = this.getNextRequestId();
         const logPrefix = `#${requestId} ${config.method?.toUpperCase()} ${config.url}`;
-        const log = (message: string) => logger.log(`${logPrefix} ${message}`);
+        const log = (message: string) => this.logger.log(`${logPrefix} ${message}`);
 
         return new Promise((resolve, reject) => {
             const sendRequest = (attempt: number) => {

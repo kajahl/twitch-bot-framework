@@ -8,6 +8,7 @@ import {
 
 import dotenv from 'dotenv';
 import { IChannelProvider, TwitchBot } from './src/decorators/TwitchBot.decorator';
+import { LogLevel } from './src/utils/Logger';
 dotenv.config();
 
 const clientId = process.env.CLIENT_ID as string;
@@ -36,6 +37,9 @@ class ChannelProvider implements IChannelProvider {
     channelProvider: ChannelProvider,
     tokenRepository: InMemoryTokenRepository,
     commands: [PingCommand, ExampleCommand],
-    listeners: [CounterListener, ShowMessageListener]
+    listeners: [CounterListener, ShowMessageListener],
+    log: {
+        levels: [LogLevel.INFO, LogLevel.NORMAL, LogLevel.ERROR, LogLevel.WARN, LogLevel.DEBUG]
+    }
 })
 class Bot {}

@@ -1,27 +1,30 @@
 import axios from "axios";
 import AccessTokenRequestConfigBuilder from "../builders/tokens/AccessTokenRequestConfig.builder";
 import { AppToken, ITokenRepository, UserToken } from "../storage/repository/Token.repository";
-import Logger from "../utils/Logger";
+import { Logger, LoggerFactory } from "../utils/Logger";
 import TwtichPermissionScope from "../enums/TwitchPermissionScope.enum";
 import { Inject, Service } from "typedi";
 import { ITwitchBotConfig } from "../decorators/TwitchBot.decorator";
 import ConfigService from "./Config.service";
-
-const logger = new Logger('TokenService');
+import DINames from "../utils/DI.names";
 
 @Service('TOKEN_SERVICE')
 export class TokenService {
     private readonly clientSecret: string;
     private readonly clientId: string;
     private tokenRepository: ITokenRepository;
+    private readonly logger: Logger;
 
     constructor(
-        @Inject('CONFIG_SERVICE') private readonly config: ConfigService
+        @Inject(DINames.ConfigService) readonly config: ConfigService,
+        @Inject(DINames.LoggerFactory) readonly loggerFactory: LoggerFactory
     ) {
+        this.logger = loggerFactory.createLogger('TokenService');
         const options : ITwitchBotConfig = config.getConfig();
         this.clientId = options.clientId;
         this.clientSecret = options.clientSecret;
         this.tokenRepository = new options.tokenRepository();
+        this.logger.debug(`Initialized`);
     }
 
     private isExpired(timestamp: number, expiresIn: number): boolean {
@@ -35,12 +38,12 @@ export class TokenService {
         const token = await this.tokenRepository.getAppToken();
         // If token is saved and is not expired: Return token
         if (token !== null && !this.isExpired(token.savedAt, token.expires_in)) {
-            logger.log(`Successfully retrieved app token from storage`);
+            this.logger.info(`Successfully retrieved app token from storage`);
             return token.access_token;
         }
 
         // else: Generate new token
-        logger.log(`AppToken is expired or not saved. Requesting new app access token...`);
+        this.logger.log(`AppToken is expired or not saved. Requesting new app access token...`);
         const accessTokenRequestConfig = new AccessTokenRequestConfigBuilder()
             .setClientId(this.clientId)
             .setClientSecret(this.clientSecret)
@@ -52,7 +55,7 @@ export class TokenService {
        
         if(response.status !== 200) throw new Error('Failed to get app token');
         
-        logger.log(`Successfully retrieved app token from Twitch API: ${response.data.access_token}`);
+        this.logger.info(`Successfully retrieved app token from Twitch API: ${this.logger.censor(response.data.access_token)}`);
         const newToken: AppToken = {
             access_token: response.data.access_token,
             expires_in: response.data.expires_in,
@@ -71,41 +74,44 @@ export class TokenService {
 
         // If token is saved and is not expired: Return token
         if (token !== null && !this.isExpired(token.savedAt, token.expires_in)) {
-            logger.log(`Successfully retrieved access token for user id=${userId} from storage`);
+            this.logger.info(`Successfully retrieved access token for user id=${userId} from storage`);
             return token;
         }
 
         // else: Check if refresh token is saved
-        logger.log(`UserAccessToken for user=${userId} is expired or not saved. Checking if refresh token is saved...`);
+        this.logger.warn(`UserAccessToken for user=${userId} is expired or not saved. Checking if refresh token is saved...`);
         this.tokenRepository.removeUserAccessToken(userId);
         const refreshToken = await this.tokenRepository.getUserRefreshToken(userId);
 
         // If refresh token is not saved: Return null
         if (refreshToken === null) {
-            logger.log(`No refresh token found for user (${userId})`);
+            this.logger.info(`No refresh token found for user (${userId})`);
             return null;
         }
 
-        // else: Generate new token
-        logger.log(`Found refresh token for user id=${userId}. Requesting new access token...`);
-        const accessTokenRequestConfig = new AccessTokenRequestConfigBuilder()
-            .setClientId(this.clientId)
-            .setClientSecret(this.clientSecret)
-            .forUser(refreshToken)
-            .build();
-
-        this._userAccessTokenRequests[userId] = this._userAccessTokenRequests[userId] ?? axios.request(accessTokenRequestConfig);
+        // else: Generate new token // Return existing request
+        if(this._userAccessTokenRequests[userId] == undefined) {
+            this.logger.info(`Found refresh token for user id=${userId}. Requesting new access token...`);
+            const accessTokenRequestConfig = new AccessTokenRequestConfigBuilder()
+                .setClientId(this.clientId)
+                .setClientSecret(this.clientSecret)
+                .forUser(refreshToken)
+                .build();
+            this._userAccessTokenRequests[userId] = axios.request(accessTokenRequestConfig);
+        } else {
+            this.logger.debug(`Found existing request for user id=${userId}. Waiting for response...`);
+        }
         const response = await this._userAccessTokenRequests[userId];
 
         // If response status is not 200: Remove refresh token and return null
         if(response.status !== 200) {
-            logger.error(`Failed to get user id=${userId} token. Refresh token is invalid or user has revoked access.`);
+            this.logger.error(`Failed to get user id=${userId} token. Refresh token is invalid or user has revoked access.`);
             this.tokenRepository.removeUserRefreshToken(userId);
             return null;
         }
 
         // else: Save new token and return access token
-        logger.log(`Successfully retrieved user id=${userId} token from Twitch API: ${response.data.access_token}`);
+        this.logger.info(`Successfully retrieved user id=${userId} token from Twitch API: ${this.logger.censor(response.data.access_token)}`);
         const newToken: UserToken = {
             access_token: response.data.access_token,
             refresh_token: response.data.refresh_token,

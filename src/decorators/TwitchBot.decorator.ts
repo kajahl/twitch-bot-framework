@@ -30,6 +30,7 @@ import { ChatListenerExecution } from '../types/ChatListener.types';
 import Container from 'typedi';
 import ConfigService from '../services/Config.service';
 import DINames from '../utils/DI.names';
+import { LogLevel } from '../utils/Logger';
 
 // Typy
 
@@ -44,6 +45,9 @@ export interface ITwitchBotConfig {
     tokenRepository: TokenRepository;
     commands: (new () => ChatCommandExecution)[];
     listeners: (new () => ChatListenerExecution)[];
+    log: {
+        levels: LogLevel[];
+    }
 }
 
 export interface IChannelProvider {

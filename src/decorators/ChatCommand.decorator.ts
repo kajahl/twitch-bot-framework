@@ -18,7 +18,7 @@ Przykład użycia:
 import { GeneralContainer, GeneralFactory, GeneralRegistry, GeneralRegistryEntry } from "../storage/runtime/Decorator.storage";
 import { ChatCommandDecoratorOptions, ChatCommandExecution, ChatCommandInstance } from "../types/ChatCommand.types";
 import ChannelChatMessageEventData from "../types/EventSub_Events/ChannelChatMessageEventData.types";
-import Logger from "../utils/Logger";
+import {Logger} from "../utils/Logger";
 
 // Typy
 

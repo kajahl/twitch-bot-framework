@@ -4,6 +4,7 @@ import { TwitchUser } from '../cache/managers/UserCache.manager';
 import { Inject, Service } from 'typedi';
 import DINames from '../utils/DI.names';
 import ConfigService from '../services/Config.service';
+import { Logger, LoggerFactory } from '../utils/Logger';
 
 /*
 
@@ -15,14 +16,18 @@ APIClient służy TYLKO do wywołań z tokenem userId (czyli użytkownika bota) 
 export default class APIClient {
     private clientId: string;
     private userId: string;
+    private readonly logger: Logger;
 
     private constructor(
-        @Inject(DINames.ConfigService) private readonly config: ConfigService,
-        @Inject(DINames.TokenService) private readonly tokenService: TokenService
+        @Inject(DINames.ConfigService) readonly config: ConfigService,
+        @Inject(DINames.TokenService) private readonly tokenService: TokenService,
+        @Inject(DINames.LoggerFactory) readonly loggerFactory: LoggerFactory
     ) {
+        this.logger = loggerFactory.createLogger('APIClient');
         const options = config.getConfig();
         this.clientId = options.clientId;
         this.userId = options.userId;
+        this.logger.debug('Initialized');
     }
 
     private async getAppAccessToken() : Promise<string> {
