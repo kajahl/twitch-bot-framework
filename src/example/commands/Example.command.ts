@@ -1,4 +1,4 @@
-import { ChatCommand } from "../../storage/decorators/ChatCommand.decorator";
+import { ChatCommand } from "../../decorators/ChatCommand.decorator";
 import { ChatCommandExecution, ChatCommandExecutionData, ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPostExecution, ChatCommandPreExecution } from "../../types/ChatCommand.types";
 
 @ChatCommand({ 

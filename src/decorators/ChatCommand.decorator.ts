@@ -1,70 +1,30 @@
-import Chat from "../../objects/Chat";
-import { ChatCommandExecution, ChatCommandInstance, ChatCommandDecoratorOptions } from "../../types/ChatCommand.types";
-import ChannelChatMessageEventData from "../../types/EventSub_Events/ChannelChatMessageEventData.types";
-import Logger from "../../utils/Logger";
-import { GeneralContainer, GeneralFactory, GeneralRegistry, GeneralRegistryEntry } from "../runtime/Decorator.storage";
+/*
+
+Dekorator do definiowania klas jako komendy czatu
+
+Przykład użycia:
+
+@ChatCommand({
+    name: string;
+    keyword: string;
+    aliases?: string[];
+    ignorePrefix?: boolean;
+    ignoreCase?: boolean;
+    transistent?: boolean;
+})
+
+*/
+
+import { GeneralContainer, GeneralFactory, GeneralRegistry, GeneralRegistryEntry } from "../storage/runtime/Decorator.storage";
+import { ChatCommandDecoratorOptions, ChatCommandExecution, ChatCommandInstance } from "../types/ChatCommand.types";
+import ChannelChatMessageEventData from "../types/EventSub_Events/ChannelChatMessageEventData.types";
+import Logger from "../utils/Logger";
+
+// Typy
+
+// Funkcje
 
 const logger = new Logger('ChatCommandDecorator');
-
-// CommandsContainer
-// type ChatCommandFactory = () => any;
-
-// type CommandEntry = {
-//     id: any;
-//     factory: ChatCommandFactory;
-//     instance?: ChatCommandExecution;
-//     transient: boolean;
-// }
-
-// export class ChatCommandsContainer {
-//     private static instance: ChatCommandsContainer;
-//     private registry: Map<any, CommandEntry> = new Map();
-
-//     private constructor() {}
-
-//     public static getInstance(): ChatCommandsContainer {
-//         if (!ChatCommandsContainer.instance) {
-//             ChatCommandsContainer.instance = new ChatCommandsContainer();
-//         }
-//         return ChatCommandsContainer.instance;
-//     }
-
-//     public set(entry: CommandEntry): void {
-//         this.registry.set(entry.id, entry);
-//     }
-
-//     public get(id: any): any {
-//         const entry = this.registry.get(id);
-//         if (!entry) throw new Error(`No entry found for id=${id}`);
-//         if (!entry.transient && !entry.instance) entry.instance = entry.factory();
-//         return entry.transient ? entry.factory() : entry.instance;
-//     }
-// }
-
-// const chatCommandsContainer = ChatCommandsContainer.getInstance();
-
-// // CommandRegistry
-// export type ChatCommandRegistryEntry = {
-//     target: new () => ChatCommandInstance;
-//     options: Required<ChatCommandDecoratorOptions>;
-//     methods: (keyof ChatCommandInstance)[];
-// }
-
-// class ChatCommandRegistry {
-//     private static registry: ChatCommandRegistryEntry[] = [];
-
-//     public static register(target: new () => ChatCommandInstance, options: Required<ChatCommandDecoratorOptions>, methods: (keyof ChatCommandInstance)[]): void {
-//         this.registry.push({ target, options, methods });
-//     }
-
-//     public static getRegisteredCommands(): ChatCommandRegistryEntry[] {
-//         return this.registry;
-//     }
-
-//     public static getCommandRecord(commandName: string): ChatCommandRegistryEntry | undefined {
-//         return this.registry.find((command) => command.options.commandName.toLowerCase() === commandName.toLowerCase());
-//     }
-// }
 
 export const chatCommandsContainer = GeneralContainer.getInstance<GeneralFactory, ChatCommandExecution>();
 const chatCommandRegistry = GeneralRegistry.getInstance<ChatCommandInstance, ChatCommandDecoratorOptions>();
@@ -190,8 +150,8 @@ export async function CommandHandler(data: ChannelChatMessageEventData): Promise
             const guardResult = await instance.guard({ event: data });
             if(!guardResult.canAccess) {
                 logger.log(`Guard failed for command ${command.entry.options.name} for user ${data.chatter_user_login} in channel ${data.broadcaster_user_login}`);
-                const chat = await Chat.byId(data.broadcaster_user_id);
-                chat.message.send(`@${data.chatter_user_login}, ${guardResult.message}`, data.message_id);
+                // const chat = await Chat.byId(data.broadcaster_user_id);
+                // chat.message.send(`@${data.chatter_user_login}, ${guardResult.message}`, data.message_id);
                 return;
             }
         }

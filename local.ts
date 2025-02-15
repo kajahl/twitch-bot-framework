@@ -1,5 +1,4 @@
-import TwitchBotFramework, {
-    ListenChannelsRepository,
+import {
     InMemoryTokenRepository,
     PingCommand,
     ExampleCommand,
@@ -8,6 +7,7 @@ import TwitchBotFramework, {
 } from './index';
 
 import dotenv from 'dotenv';
+import { IChannelProvider, TwitchBot } from './src/decorators/TwitchBot.decorator';
 dotenv.config();
 
 const clientId = process.env.CLIENT_ID as string;
@@ -15,32 +15,27 @@ const clientSecret = process.env.CLIENT_SECRET as string;
 const userId = process.env.USER_ID as string;
 const userRefreshToken = process.env.USER_REFRESH_TOKEN as string;
 
-// ListenChannelsRepository
 
-class ListenedChannels implements ListenChannelsRepository {
+class ChannelProvider implements IChannelProvider {
     private channels: string[] = ['87576158', '82197170'];
     async getChannelIds(): Promise<string[]> {
         return this.channels;
     }
+    async onChannelsUpdated(callback: (channels: string[]) => void): Promise<void> {
+        setInterval(() => {
+            this.channels = ['87576158', '82197170'];
+            callback(this.channels);
+        }, 10000);
+    }
 }
 
-// END ListenChannelsRepository
-
-const app = new TwitchBotFramework({
-    bot: {
-        userId,
-        clientId,
-        clientSecret
-    },
-    channels: {
-        listenChannelsClass: ListenedChannels,
-        // listenChannels: ['87576158']
-    },
-    chat: {
-        commands: [PingCommand, ExampleCommand],
-        listeners: [ShowMessageListener]
-    },
-    repository: {
-        tokenClass: InMemoryTokenRepository
-    }
-});
+@TwitchBot({
+    userId,
+    clientId,
+    clientSecret,
+    channelProvider: ChannelProvider,
+    tokenRepository: InMemoryTokenRepository,
+    commands: [PingCommand, ExampleCommand],
+    listeners: [CounterListener, ShowMessageListener]
+})
+class Bot {}

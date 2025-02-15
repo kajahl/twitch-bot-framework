@@ -1,5 +1,4 @@
-import Chat from '../../objects/Chat';
-import { ChatCommand } from '../../storage/decorators/ChatCommand.decorator';
+import { ChatCommand } from "../../decorators/ChatCommand.decorator";
 import { ChatCommandExecution, ChatCommandExecutionData, ChatCommandExecutionGuard } from '../../types/ChatCommand.types';
 
 @ChatCommand({
@@ -16,7 +15,7 @@ export default class PingCommand implements ChatCommandExecutionGuard, ChatComma
     }
 
     async execution(data: ChatCommandExecutionData): Promise<void> {
-        const chat = await Chat.byId(data.event.broadcaster_user_id);
-        chat.message.send(`Pong! (no. ${++this.executionCounter})`);
+        // const chat = await Chat.byId(data.event.broadcaster_user_id);
+        // chat.message.send(`Pong! (no. ${++this.executionCounter})`);
     }
 }
