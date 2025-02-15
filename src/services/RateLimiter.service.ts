@@ -27,19 +27,22 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import { RequestPriority, RequestQueueItem, TwitchRatelimitState } from "../types/RateLimiter.types";
 import Logger from "../utils/Logger";
 import TimeCounter from "../utils/TimeCounter";
+import { Service } from "typedi";
 
 const logger = new Logger('RateLimiterService');
 
+@Service('RATE_LIMITER_SERVICE')
 export default class RateLimiterService {
-    private static instances: Map<string, RateLimiterService> = new Map();
-    private constructor(private id: string) {}
-    static forUser(userId: string | 'app') {
-        if(!RateLimiterService.instances.has(userId)) RateLimiterService.instances.set(userId, new RateLimiterService(userId));
-        return RateLimiterService.instances.get(userId) as RateLimiterService;
-    }
-    static forApp() {
-        return RateLimiterService.forUser('app');
-    }
+    private constructor() {}
+
+    // private static instances: Map<string, RateLimiterService> = new Map();
+    // static forUser(userId: string | 'app') {
+    //     if(!RateLimiterService.instances.has(userId)) RateLimiterService.instances.set(userId, new RateLimiterService(userId));
+    //     return RateLimiterService.instances.get(userId) as RateLimiterService;
+    // }
+    // static forApp() {
+    //     return RateLimiterService.forUser('app');
+    // }
 
     private state: TwitchRatelimitState = {
         limit: 800,
@@ -61,7 +64,7 @@ export default class RateLimiterService {
     private async handleQueue() {
         if(this.requestQueue.length == 0) return;
         if(this.interval !== null) return;
-        logger.log(`Request jam detected for api=${this.id} A query queue has been introduced.`);
+        // logger.log(`Request jam detected for api=${this.id} A query queue has been introduced.`);
         this.interval = setInterval(() => {
             for(let i = 0; i < this.maxRequestsPerSecond; i++) {
                 const record = this.requestQueue.sort((a,b) => b.priority - a.priority == 0 ? a.id - b.id : b.priority - a.priority).shift();

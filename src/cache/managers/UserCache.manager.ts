@@ -1,26 +1,23 @@
+import { Inject, Service } from "typedi";
 import APIClient from "../../clients/Api.client";
-import { getServiceInstance, InstanceService } from "../../decorators/InstanceService.decorator";
 import { TokenService } from "../../services/Token.service";
-import TwitchBotFramework from "../../TwitchBotFramework";
 import Logger from "../../utils/Logger";
 import { LRUCache } from "../models/LRUCache.storage";
+import DINames from "../../utils/DI.names";
+import ConfigService from "../../services/Config.service";
 
 const logger = new Logger('UserCacheManager')
 
 type T = TwitchUser;
 
-@InstanceService()
+@Service(DINames.UserCacheManager)
 export default class UserCacheManager extends LRUCache<T> {
-    private tokenService: TokenService
-    private apiClient: APIClient;
-
     private constructor(
-        private readonly botInstance: TwitchBotFramework
+        @Inject(DINames.ConfigService) private readonly config: ConfigService,
+        @Inject(DINames.TokenService) private readonly tokenService: TokenService,
+        @Inject(DINames.APIClient) private readonly apiClient: APIClient
     ) {
         super({ ttl: 300 });
-        const options = Reflect.getMetadata('config', botInstance);
-        this.tokenService = getServiceInstance(TokenService, options.userId);
-        this.apiClient = getServiceInstance(APIClient, options.userId);
     }
 
     async findIdByUsername(username: string): Promise<string | null> {

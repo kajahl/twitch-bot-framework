@@ -1,10 +1,9 @@
 import GetUsersRequestConfigBuilder from '../builders/api/GetUsersRequestConfig.builder';
 import { TokenService } from '../services/Token.service';
-import GetModeratorsRequestConfigBuilder from '../builders/api/GetModeratorsRequestConfig.builder';
-import RateLimiterService from '../services/RateLimiter.service';
 import { TwitchUser } from '../cache/managers/UserCache.manager';
-import TwitchBotFramework from '../TwitchBotFramework';
-import { getServiceInstance, InstanceService } from '../decorators/InstanceService.decorator';
+import { Inject, Service } from 'typedi';
+import DINames from '../utils/DI.names';
+import ConfigService from '../services/Config.service';
 
 /*
 
@@ -12,19 +11,18 @@ APIClient służy TYLKO do wywołań z tokenem userId (czyli użytkownika bota) 
 
 */
 
-@InstanceService()
+@Service(DINames.APIClient)
 export default class APIClient {
     private clientId: string;
     private userId: string;
-    private tokenService: TokenService;
 
     private constructor(
-        private readonly botInstance: TwitchBotFramework
+        @Inject(DINames.ConfigService) private readonly config: ConfigService,
+        @Inject(DINames.TokenService) private readonly tokenService: TokenService
     ) {
-        const options = Reflect.getMetadata('config', botInstance);
+        const options = config.getConfig();
         this.clientId = options.clientId;
         this.userId = options.userId;
-        this.tokenService = getServiceInstance(TokenService, this.userId)
     }
 
     private async getAppAccessToken() : Promise<string> {

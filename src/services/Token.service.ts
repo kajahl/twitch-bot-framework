@@ -3,23 +3,22 @@ import AccessTokenRequestConfigBuilder from "../builders/tokens/AccessTokenReque
 import { AppToken, ITokenRepository, UserToken } from "../storage/repository/Token.repository";
 import Logger from "../utils/Logger";
 import TwtichPermissionScope from "../enums/TwitchPermissionScope.enum";
-// import UserCacheManager from "../cache/managers/UserCache.manager";
-import TwitchBotFramework from "../TwitchBotFramework";
+import { Inject, Service } from "typedi";
 import { ITwitchBotConfig } from "../decorators/TwitchBot.decorator";
-import { InstanceService } from "../decorators/InstanceService.decorator";
+import ConfigService from "./Config.service";
 
 const logger = new Logger('TokenService');
 
-@InstanceService()
+@Service('TOKEN_SERVICE')
 export class TokenService {
     private readonly clientSecret: string;
     private readonly clientId: string;
     private tokenRepository: ITokenRepository;
 
     constructor(
-        private readonly botInstance: TwitchBotFramework
+        @Inject('CONFIG_SERVICE') private readonly config: ConfigService
     ) {
-        const options : ITwitchBotConfig = Reflect.getMetadata('config', botInstance);
+        const options : ITwitchBotConfig = config.getConfig();
         this.clientId = options.clientId;
         this.clientSecret = options.clientSecret;
         this.tokenRepository = new options.tokenRepository();

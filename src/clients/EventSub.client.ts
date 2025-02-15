@@ -9,27 +9,27 @@ import { CreateSubscriptionResponse, DeleteSubscriptionResponse } from '../types
 import SubscribedEventListRequestConfigBuilder from '../builders/eventsub/SubscribedEventListRequestConfig.builder';
 import DeleteEventSubscriptionRequestConfigBuilder from '../builders/eventsub/DeleteEventSubscriptionRequestConfig.builder';
 import TwtichPermissionScope from '../enums/TwitchPermissionScope.enum';
-import TwitchBotFramework from '../TwitchBotFramework';
-import { getServiceInstance, InstanceService } from '../decorators/InstanceService.decorator';
 import { IChannelProvider } from '../decorators/TwitchBot.decorator';
+import { Inject, Service } from 'typedi';
+import DINames from '../utils/DI.names';
+import ConfigService from '../services/Config.service';
 
 const logger = new Logger('EventSubClient');
 
-@InstanceService()
+@Service(DINames.EventSubClient)
 export default class EventSubClient {
     private readonly clientId: string;
     private readonly userId: string;
     private websocketClient: WebsocketClient;
-    private tokenService: TokenService;
     private channelProvider: IChannelProvider;
 
     private constructor(
-        private readonly botInstance: TwitchBotFramework
+        @Inject(DINames.ConfigService) private readonly config: ConfigService,
+        @Inject(DINames.TokenService) private readonly tokenService: TokenService
     ) {
-        const options = Reflect.getMetadata('config', botInstance);
+        const options = config.getConfig();
         this.clientId = options.clientId;
         this.userId = options.userId;
-        this.tokenService = getServiceInstance(TokenService, options.userId);
         this.websocketClient = new WebsocketClient(this, this.onWebsocketConnected.bind(this), this.onWebsocketDisconnected.bind(this));
         
         this.channelProvider = new options.channelProvider();
@@ -49,7 +49,7 @@ export default class EventSubClient {
 
     private channelList: string[] = [];
     private async setupChatListeners() {
-        const options = Reflect.getMetadata('config', this.botInstance);
+        const options = this.config.getConfig();
 
         const channels = await this.channelProvider.getChannelIds();
         if(!channels.includes(options.userId)) {

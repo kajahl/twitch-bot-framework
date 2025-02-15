@@ -25,15 +25,11 @@ Dodatkowe rzeczy do przemyślenia:
 
 import 'reflect-metadata';
 import { ITokenRepository } from '../storage/repository/Token.repository';
-import TwitchBotFramework from '../TwitchBotFramework';
 import { ChatCommandExecution } from '../types/ChatCommand.types';
 import { ChatListenerExecution } from '../types/ChatListener.types';
 import Container from 'typedi';
-import EventSubClient from '../clients/EventSub.client';
-import { RegisterServicePerInstance } from './InstanceService.decorator';
-import { TokenService } from '../services/Token.service';
-import UserCacheManager from '../cache/managers/UserCache.manager';
-import APIClient from '../clients/Api.client';
+import ConfigService from '../services/Config.service';
+import DINames from '../utils/DI.names';
 
 // Typy
 
@@ -55,34 +51,10 @@ export interface IChannelProvider {
     onChannelsUpdated(callback: (channels: string[]) => void): Promise<void> | void; // Observer pattern
 }
 
-// Funkcje
-
-const BotInstanceContainer = Container.of('BotInstance');
-
 export function TwitchBot(config: ITwitchBotConfig): ClassDecorator {
     return (target: any) => {
-        console.log(`[TwitchBotDecorator] Registering bot instance for UserId=${config.userId}`);
-        Reflect.defineMetadata('config', config, target);
-
-        // Cannot have multiple instances of the same bot
-        if (BotInstanceContainer.has(config.userId)) {
-            throw new Error(`Bot instance for userId ${config.userId} already exists.`);
-        }
-
-        // Register the bot instance
-        const instance = new TwitchBotFramework(config);
-        BotInstanceContainer.set(config.userId, instance);
-
-        // Register the services (per instance)
-        const userId = config.userId;
-
-        const servicesToRegister = [
-            TokenService,
-            APIClient,
-            EventSubClient,
-            UserCacheManager
-        ]
-
-        servicesToRegister.forEach(service => RegisterServicePerInstance(target, service));
+        if (Container.has(DINames.ConfigService)) throw new Error(`You can only have one instance of bot`);
+        Container.set(DINames.ConfigService, new ConfigService(config));
+        Container.get(DINames.TwitchBotFramework);
     };
 }
