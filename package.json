@@ -4,7 +4,7 @@
   "description": "Framework for creating a bot for twitch",
   "author": "kajahl",
   "homepage": "https://github.com/kajahl/twitch-bot-framework",
-  "license": "AGPL-3.0-only",
+  "license": "CC-BY-NC-SA-4.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
