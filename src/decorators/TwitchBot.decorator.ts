@@ -32,17 +32,21 @@ import DINames from '../utils/DI.names';
 import { LogLevel } from '../utils/Logger';
 import TokenRepository from '../repositories/Token.repository';
 import { ITokenRepository } from '../types/Token.repository.types';
+import { IListenChannels } from '../types/ListenChannels.provider.types';
 
 // Typy
 
-export type ChannelProvider = new () => IChannelProvider;
+export type ListenChannelsProvider = new () => IListenChannels;
 export type TokenRepositoryProvider = new () => ITokenRepository;
 
 export interface ITwitchBotConfig {
     userId: string;
     clientId: string;
     clientSecret: string;
-    channelProvider: ChannelProvider;
+    listenChannels: {
+        provider: ListenChannelsProvider;
+        refreshInterval: number;
+    }
     tokenRepository: TokenRepositoryProvider;
     commands: (new () => ChatCommandExecution)[];
     listeners: (new () => ChatListenerExecution)[];
@@ -51,16 +55,12 @@ export interface ITwitchBotConfig {
     }
 }
 
-export interface IChannelProvider {
-    getChannelIds(): Promise<string[]> | string[]; // Strategy pattern
-    onChannelsUpdated(callback: (channels: string[]) => void): Promise<void> | void; // Observer pattern
-}
-
 export function TwitchBot(config: ITwitchBotConfig): ClassDecorator {
     return (target: any) => {
         if (Container.has(DINames.ConfigService)) throw new Error(`You can only have one instance of bot`);
         Container.set(DINames.ConfigService, new ConfigService(config));
         Container.set(DINames.TokenRepository, new TokenRepository(config.tokenRepository));
+        Container.set(DINames.UserDefinedListenChannelsProvider, new config.listenChannels.provider());
         Container.get(DINames.TwitchBotFramework);
     };
 }

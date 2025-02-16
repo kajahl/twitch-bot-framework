@@ -7,8 +7,9 @@ import {
 } from './index';
 
 import dotenv from 'dotenv';
-import { IChannelProvider, TwitchBot } from './src/decorators/TwitchBot.decorator';
+import { TwitchBot } from './src/decorators/TwitchBot.decorator';
 import { LogLevel } from './src/utils/Logger';
+import { IListenChannels } from './src/types/ListenChannels.provider.types';
 dotenv.config();
 
 const clientId = process.env.CLIENT_ID as string;
@@ -16,17 +17,11 @@ const clientSecret = process.env.CLIENT_SECRET as string;
 const userId = process.env.USER_ID as string;
 const userRefreshToken = process.env.USER_REFRESH_TOKEN as string;
 
-
-class ChannelProvider implements IChannelProvider {
+class ListenChannelsProvider implements IListenChannels {
+    private i = 0;
     private channels: string[] = ['87576158', '82197170'];
     async getChannelIds(): Promise<string[]> {
-        return this.channels;
-    }
-    async onChannelsUpdated(callback: (channels: string[]) => void): Promise<void> {
-        setInterval(() => {
-            this.channels = ['87576158', '82197170'];
-            callback(this.channels);
-        }, 10000);
+        return this.i++ % 2 ? this.channels : [];
     }
 }
 
@@ -34,7 +29,10 @@ class ChannelProvider implements IChannelProvider {
     userId,
     clientId,
     clientSecret,
-    channelProvider: ChannelProvider,
+    listenChannels: {
+        provider: ListenChannelsProvider,
+        refreshInterval: 30000
+    },
     tokenRepository: InMemoryTokenRepository,
     commands: [PingCommand, ExampleCommand],
     listeners: [CounterListener, ShowMessageListener],

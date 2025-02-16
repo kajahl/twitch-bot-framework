@@ -8,6 +8,9 @@ enum DINames {
     TwitchBotFramework = 'TWITCH_BOT_FRAMEWORK',
     LoggerFactory = 'LOGGER_FACTORY',
     TokenRepository = 'TOKEN_REPOSITORY',
+    ListenChannelsProvider = 'LISTEN_CHANNELS_PROVIDER',
+
+    UserDefinedListenChannelsProvider = 'USER_DEFINED_LISTEN_CHANNELS_PROVIDER',
 }
 
 export default DINames;
