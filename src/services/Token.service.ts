@@ -1,29 +1,29 @@
 import axios from "axios";
 import AccessTokenRequestConfigBuilder from "../builders/tokens/AccessTokenRequestConfig.builder";
-import { AppToken, ITokenRepository, UserToken } from "../storage/repository/Token.repository";
 import { Logger, LoggerFactory } from "../utils/Logger";
 import TwtichPermissionScope from "../enums/TwitchPermissionScope.enum";
 import { Inject, Service } from "typedi";
 import { ITwitchBotConfig } from "../decorators/TwitchBot.decorator";
 import ConfigService from "./Config.service";
 import DINames from "../utils/DI.names";
+import TokenRepository from "../repositories/Token.repository";
+import { AppToken, UserToken } from "../types/Token.repository.types";
 
-@Service('TOKEN_SERVICE')
+@Service(DINames.TokenService)
 export class TokenService {
     private readonly clientSecret: string;
     private readonly clientId: string;
-    private tokenRepository: ITokenRepository;
     private readonly logger: Logger;
 
     constructor(
         @Inject(DINames.ConfigService) readonly config: ConfigService,
-        @Inject(DINames.LoggerFactory) readonly loggerFactory: LoggerFactory
+        @Inject(DINames.TokenRepository) private readonly tokenRepository: TokenRepository,
+        @Inject(DINames.LoggerFactory) private readonly loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('TokenService');
         const options : ITwitchBotConfig = config.getConfig();
         this.clientId = options.clientId;
         this.clientSecret = options.clientSecret;
-        this.tokenRepository = new options.tokenRepository();
         this.logger.debug(`Initialized`);
     }
 

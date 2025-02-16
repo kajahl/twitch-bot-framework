@@ -1,4 +1,4 @@
-import { AppToken, ITokenRepository, UserToken } from "../repository/Token.repository";
+import { AppToken, ITokenRepository, UserToken } from "../../types/Token.repository.types";
 import dotenv from 'dotenv';
 dotenv.config();
 

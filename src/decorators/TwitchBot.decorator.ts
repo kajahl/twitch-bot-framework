@@ -24,25 +24,26 @@ Dodatkowe rzeczy do przemyślenia:
 */
 
 import 'reflect-metadata';
-import { ITokenRepository } from '../storage/repository/Token.repository';
 import { ChatCommandExecution } from '../types/ChatCommand.types';
 import { ChatListenerExecution } from '../types/ChatListener.types';
 import Container from 'typedi';
 import ConfigService from '../services/Config.service';
 import DINames from '../utils/DI.names';
 import { LogLevel } from '../utils/Logger';
+import TokenRepository from '../repositories/Token.repository';
+import { ITokenRepository } from '../types/Token.repository.types';
 
 // Typy
 
 export type ChannelProvider = new () => IChannelProvider;
-export type TokenRepository = new () => ITokenRepository;
+export type TokenRepositoryProvider = new () => ITokenRepository;
 
 export interface ITwitchBotConfig {
     userId: string;
     clientId: string;
     clientSecret: string;
     channelProvider: ChannelProvider;
-    tokenRepository: TokenRepository;
+    tokenRepository: TokenRepositoryProvider;
     commands: (new () => ChatCommandExecution)[];
     listeners: (new () => ChatListenerExecution)[];
     log: {
@@ -59,6 +60,7 @@ export function TwitchBot(config: ITwitchBotConfig): ClassDecorator {
     return (target: any) => {
         if (Container.has(DINames.ConfigService)) throw new Error(`You can only have one instance of bot`);
         Container.set(DINames.ConfigService, new ConfigService(config));
+        Container.set(DINames.TokenRepository, new TokenRepository(config.tokenRepository));
         Container.get(DINames.TwitchBotFramework);
     };
 }

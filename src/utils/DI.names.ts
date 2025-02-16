@@ -6,7 +6,8 @@ enum DINames {
     UserCacheManager = 'USER_CACHE_MANAGER',
     APIClient = 'API_CLIENT',
     TwitchBotFramework = 'TWITCH_BOT_FRAMEWORK',
-    LoggerFactory = 'LOGGER_FACTORY'
+    LoggerFactory = 'LOGGER_FACTORY',
+    TokenRepository = 'TOKEN_REPOSITORY',
 }
 
 export default DINames;
