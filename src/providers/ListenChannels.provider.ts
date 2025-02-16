@@ -69,15 +69,47 @@ export default class ListenChannelsProvider implements IListenChannels {
     }
 
     handleFailedSubscriptions(failedSubscriptions: ListenChannelSubscriptionResult[], failedUnsubscriptions: ListenChannelSubscriptionResult[]): void {
-        //TODO: API -> Pobierz subskrypcje (nasłuchiwanie czatu) + sprawdz czy są aktualne (chodzi o to, aby lista w ListChannelsProvider była aktualna - jeżeli zwróciło jako "add"/"removed" to traktuje to jakby zawsze się udawało - a nie musi)
-        // TODO: Lub przechwytywanie jakie statusy są zwracane (link poniżej) - według tego można odpowiednio zareagować (202/400/401/403/409/429)
-        // https://dev.twitch.tv/docs/api/reference/#create-eventsub-subscription
+        // TODO: API -> Pobierz subskrypcje (nasłuchiwanie czatu) + sprawdz czy są aktualne (chodzi o to, aby lista w ListChannelsProvider była aktualna - jeżeli zwróciło jako "add"/"removed" to traktuje to jakby zawsze się udawało - a nie musi)
+        // TODO: LUB Reakcja na kody błędów + Sprawdzanie czasowe czy jakiś kanał przypadkowo jest zasubskrybowany (np. z powodu błędu nie został usunięty) z wykorzystaniem API
+        
         // Tymczasowo:
         // failedSubscriptions -> usuwa kanały z listy "_lastChannelIds"
         // failedUnsubscriptions -> ignoruje (jeżeli się nie udalo to znaczy: (1) nie bylo subskrypcji (2) coś się stało i tak nie nasłuchuje tego kanału)
+        
+        // https://dev.twitch.tv/docs/api/reference/#create-eventsub-subscription
+        // Kody: (202/400/401/403/409/429)
         this._lastChannelIds = this._lastChannelIds.filter((channel) => !failedSubscriptions.map(f => f.channel).includes(channel));
-        if (failedSubscriptions.length > 0) this.logger.warn(`Failed subscriptions: ${failedSubscriptions.map(fs => `${fs.channel} (${fs.code})`).join(', ')}`);
-        if (failedUnsubscriptions.length > 0) this.logger.warn(`Failed unsubscriptions: ${failedUnsubscriptions.map(fs => `${fs.channel} (${fs.code})`).join(', ')}`);
+        if (failedSubscriptions.length > 0) {
+            const getDesc = (code: number) => {
+                switch (code) {
+                    case 400: return 'Bad request: Request was malformed or missing fields';
+                    case 401: return 'Unauthorized: Access token is missing or invalid';
+                    case 403: return 'Forbidden: Missing required scope';
+                    case 409: return 'Conflict: Subscription with this conditions already exists';
+                    case 429: return 'Too many requests: Exceeded subscription limit (type+condition combination)';
+                    default: return 'Unknown';
+                }
+            };
+            const lines = failedSubscriptions.map(fs => `${fs.channel} (${fs.code}: ${getDesc(fs.code)})`);
+            this.logger.warn(`Failed subscriptions:`);
+            lines.forEach((line) => this.logger.warn(`- ${line}`));
+        }
+
+        // https://dev.twitch.tv/docs/api/reference/#delete-eventsub-subscription
+        // Kody: (204, 400, 401, 404)
+        if (failedUnsubscriptions.length > 0) {
+            const getDesc = (code: number) => {
+                switch (code) {
+                    case 400: return 'Bad request: Request was malformed or missing fields';
+                    case 401: return 'Unauthorized: Access token is missing or invalid';
+                    case 404: return 'Not found: Subscription not found';
+                    default: return 'Unknown';
+                }
+            };
+            const lines = failedUnsubscriptions.map(fs => `${fs.channel} (${fs.code}: ${getDesc(fs.code)})`);
+            this.logger.warn(`Failed unsubscriptions:`);
+            lines.forEach((line) => this.logger.warn(`- ${line}`));
+        }
     }
 
     // Observer pattern
