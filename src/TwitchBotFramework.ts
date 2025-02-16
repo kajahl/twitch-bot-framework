@@ -7,6 +7,7 @@ import EventSubClient from './clients/EventSub.client';
 import DINames from './utils/DI.names';
 import ConfigService from './services/Config.service';
 import { Logger, LoggerFactory } from './utils/Logger';
+import APIClient from './clients/Api.client';
 
 @Service(DINames.TwitchBotFramework)
 export default class TwitchBotFramework {
@@ -16,6 +17,7 @@ export default class TwitchBotFramework {
         @Inject(DINames.ConfigService) readonly config: ConfigService,
         @Inject(DINames.TokenService) readonly tokenService: TokenService,
         @Inject(DINames.EventSubClient) readonly eventSubClient: EventSubClient,
+        @Inject(DINames.APIClient) readonly apiClient: APIClient,
         @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('TwitchBotFramework');

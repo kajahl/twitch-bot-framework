@@ -1,6 +1,8 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
 import { GeneralResponseBody, GeneralResponseError } from "../types/APIClient.types";
 import RateLimiterService from "../services/RateLimiter.service";
+import { Inject } from "typedi";
+import DINames from "../utils/DI.names";
 
 export default abstract class TemplateBuilder<ResponseType> {
     protected config: AxiosRequestConfig;
@@ -8,7 +10,15 @@ export default abstract class TemplateBuilder<ResponseType> {
     abstract errorResponseCodes: number[];
     private getUserIdRelatedToToken: () => string;
 
-    constructor(method: Method, url: string, data: any, getUserIdRelatedToToken: typeof this.getUserIdRelatedToToken) {
+    @Inject(DINames.RateLimiterService)
+    private rateLimiterService!: RateLimiterService;
+
+    constructor(
+        method: Method, 
+        url: string, 
+        data: any, 
+        getUserIdRelatedToToken: typeof this.getUserIdRelatedToToken
+    ) {
         this.config = {
             url,
             method,
@@ -38,7 +48,7 @@ export default abstract class TemplateBuilder<ResponseType> {
 
     async make(): Promise<GeneralResponseBody<ResponseType>> {
         const requestConfig = this.build();
-        const rateLimiter = RateLimiterService.forUser(this.getUserIdRelatedToToken());
+        const rateLimiter = this.rateLimiterService.forUser(this.getUserIdRelatedToToken());
         const response = await rateLimiter.send<GeneralResponseBody<ResponseType>>(requestConfig)
         if(this.correctResponseCodes.includes(response.status)) return response.data;
         else if(this.errorResponseCodes.includes(response.status)) {
