@@ -11,7 +11,7 @@ Przykład użycia:
 
 */
 
-import { GeneralContainer, GeneralFactory, GeneralRegistry } from "../storage/runtime/Decorator.storage";
+import { GeneralContainer, GeneralFactory, GeneralRegistry } from "../types/Decorator.storage.types";
 import { ChatListenerDecoratorOptions, ChatListenerExecution, ChatListenerInstance } from "../types/ChatListener.types";
 import ChannelChatMessageEventData from "../types/EventSub_Events/ChannelChatMessageEventData.types";
 import {Logger} from "../utils/Logger";

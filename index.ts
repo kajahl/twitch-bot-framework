@@ -5,7 +5,7 @@ import TwitchBotFramework from './src/TwitchBotFramework';
 import { ITokenRepository } from './src/types/Token.repository.types';
 
 // Predefined strategies
-import InMemoryTokenRepository from './src/storage/predefined/InMemoryToken.repository';
+import InMemoryTokenRepository from './src/example/repositories/InMemoryToken.repository';
 
 // Command interfaces
 import {  
