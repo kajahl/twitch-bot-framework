@@ -16,6 +16,7 @@ export default class ListenChannelsProvider implements IListenChannels {
     ) {
         this.logger = loggerFactory.createLogger('ListenChannels');
         this.setupRefreshInterval();
+        this.setupApiCheckInterval();
         this.logger.debug('Initialized');
     }
 
@@ -27,6 +28,20 @@ export default class ListenChannelsProvider implements IListenChannels {
             this.logger.debug(`Interval for refreshing channels`);
             this.refreshChannels();
         }, refreshInterval);
+    }
+
+    // Interval for API check (TODO)
+    private apiCheckInterval: NodeJS.Timeout | null = null;
+    private setupApiCheckInterval(): void {
+        const apiCheckDelay = this.config.getConfig().listenChannels.refreshInterval / 2;
+        setTimeout(() => {
+            if(this.apiCheckInterval) clearInterval(this.apiCheckInterval);
+            const apiCheckInterval = this.config.getConfig().listenChannels.refreshInterval * 4;
+            this.apiCheckInterval = setInterval(() => {
+                this.logger.debug(`Interval for API check`);
+                this.APICheckChannels();
+            }, apiCheckInterval);
+        }, apiCheckDelay);
     }
 
     /**
@@ -68,14 +83,17 @@ export default class ListenChannelsProvider implements IListenChannels {
         return true;
     }
 
+    private APICheckChannels(): void {
+        // TODO : Implementacja sprawdzania poprawności lokalnego stanu "this._lastChannelIds" z wykorzystaniem API
+        // Do ogarnięcia jak będzie builder dla API
+    }
+
+    /**
+     * Handle failed subscriptions and unsubscriptions
+     * @param failedSubscriptions List of failed subscriptions {@link ListenChannelSubscriptionResult}
+     * @param failedUnsubscriptions List of failed unsubscriptions {@link ListenChannelSubscriptionResult}
+     */
     handleFailedSubscriptions(failedSubscriptions: ListenChannelSubscriptionResult[], failedUnsubscriptions: ListenChannelSubscriptionResult[]): void {
-        // TODO: API -> Pobierz subskrypcje (nasłuchiwanie czatu) + sprawdz czy są aktualne (chodzi o to, aby lista w ListChannelsProvider była aktualna - jeżeli zwróciło jako "add"/"removed" to traktuje to jakby zawsze się udawało - a nie musi)
-        // TODO: LUB Reakcja na kody błędów + Sprawdzanie czasowe czy jakiś kanał przypadkowo jest zasubskrybowany (np. z powodu błędu nie został usunięty) z wykorzystaniem API
-        
-        // Tymczasowo:
-        // failedSubscriptions -> usuwa kanały z listy "_lastChannelIds"
-        // failedUnsubscriptions -> ignoruje (jeżeli się nie udalo to znaczy: (1) nie bylo subskrypcji (2) coś się stało i tak nie nasłuchuje tego kanału)
-        
         // https://dev.twitch.tv/docs/api/reference/#create-eventsub-subscription
         // Kody: (202/400/401/403/409/429)
         this._lastChannelIds = this._lastChannelIds.filter((channel) => !failedSubscriptions.map(f => f.channel).includes(channel));
