@@ -11,6 +11,7 @@ enum DINames {
     ListenChannelsProvider = 'LISTEN_CHANNELS_PROVIDER',
     ChannelOptionsProvider = 'CHANNEL_OPTIONS_PROVIDER',
     ChatCommandsService = 'CHAT_COMMANDS_SERVICE',
+    ChatListenersService = 'CHAT_LISTENERS_SERVICE',
 
     UserDefinedListenChannelsProvider = 'USER_DEFINED_LISTEN_CHANNELS_PROVIDER',
 }

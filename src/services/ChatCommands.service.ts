@@ -80,7 +80,6 @@ export default class ChatCommandsService {
 
     async handleCommand(data: ChannelChatMessageEventData): Promise<void> {
         const channelOptions = await this.channelOptionsProvider.getChannelOptions(data.broadcaster_user_id);
-        console.warn('channelOptions', channelOptions);
         const commandPrefix = channelOptions.prefix;
         if (!data.message.text.startsWith(commandPrefix)) {
             this.logger.debug(`Ignoring message ${data.message_id} (#${data.broadcaster_user_login}) - Missing prefix '${commandPrefix}'`);

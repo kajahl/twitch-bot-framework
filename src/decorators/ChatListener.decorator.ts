@@ -11,26 +11,11 @@ Przykład użycia:
 
 */
 
-import { GeneralContainer, GeneralFactory, GeneralRegistry } from "../types/Decorator.storage.types";
-import { ChatListenerDecoratorOptions, ChatListenerExecution, ChatListenerInstance } from "../types/ChatListener.types";
-import ChannelChatMessageEventData from "../types/EventSub_Events/ChannelChatMessageEventData.types";
-import {Logger} from "../utils/Logger";
-
-
-// Typy
-
-// Funkcje
-
-const logger = new Logger('ChatListenerDecorator');
-
-export const chatListenersContainer = GeneralContainer.getInstance<GeneralFactory, ChatListenerExecution>();
-const chatListenerRegistry = GeneralRegistry.getInstance<ChatListenerInstance, ChatListenerDecoratorOptions>();
-
+import ChatListenersService from "../services/ChatListeners.service";
+import { ChatListenerDecoratorOptions, ChatListenerInstance } from "../types/ChatListener.types";
 
 // Decorator
 export function ChatListener(options: ChatListenerDecoratorOptions): ClassDecorator {
-    logger.log(`Registering listener ${options.name}`);
-
     return function (target: any) {
         const allOptions: Required<ChatListenerDecoratorOptions> = {
             name: options.name,
@@ -38,14 +23,14 @@ export function ChatListener(options: ChatListenerDecoratorOptions): ClassDecora
         };
 
         // Register the command in the container
-        chatListenersContainer.set({
+        ChatListenersService.getChatListenersContainer().set({
             id: target,
             factory: () => new target(),
             transient: allOptions.transient,
             enabled: false // Default disabled (enable by setting in TwitchBotFramework)
         });
 
-        const instance = chatListenersContainer.get(target) as ChatListenerInstance;
+        const instance = ChatListenersService.getChatListenersContainer().get(target) as ChatListenerInstance;
 
         // Check if the command implements the required methods
         if (typeof instance.execution !== 'function') {
@@ -59,24 +44,6 @@ export function ChatListener(options: ChatListenerDecoratorOptions): ClassDecora
             return m;
         }).filter(m => m !== undefined) as (keyof ChatListenerInstance)[];
 
-        chatListenerRegistry.register(target, allOptions, methods);
+        ChatListenersService.getListenersRegistry().register(target, allOptions, methods);
     };
-}
-
-export function ListenerHandler(data: ChannelChatMessageEventData): void {
-    const listeners = chatListenerRegistry.getRegisteredEntries();
-    listeners.forEach(listener => {
-        let instance: ChatListenerInstance;
-        try {
-            instance = chatListenersContainer.get(listener.target, true);
-        } catch (error) {
-            return;
-        }
-        
-        try {
-            instance.execution({ event: data });
-        } catch (error) {
-            logger.error(`Error while executing listener ${listener.options.name}: ${error}`);
-        }
-    });
 }

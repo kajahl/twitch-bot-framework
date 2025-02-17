@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { Inject, Service } from 'typedi';
-import { chatListenersContainer } from './decorators/ChatListener.decorator';
 import { TokenService } from './services/Token.service';
 import EventSubClient from './clients/EventSub.client';
 import DINames from './utils/DI.names';
@@ -8,6 +7,7 @@ import ConfigService from './services/Config.service';
 import { Logger, LoggerFactory } from './utils/Logger';
 import APIClient from './clients/Api.client';
 import ChatCommandsService from './services/ChatCommands.service';
+import ChatListenersService from './services/ChatListeners.service';
 
 @Service(DINames.TwitchBotFramework)
 export default class TwitchBotFramework {
@@ -31,7 +31,7 @@ export default class TwitchBotFramework {
         }
         if (options.listeners) {
             options.listeners.forEach((listener) => {
-                chatListenersContainer.enable(listener);
+                ChatListenersService.getChatListenersContainer().enable(listener);
             });
         }
 

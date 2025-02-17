@@ -3,10 +3,8 @@ import { Logger, LoggerFactory } from "../utils/Logger";
 import { WebSocket } from "ws";
 import EventSubClient from "./EventSub.client";
 import TwitchEventId from "../enums/TwitchEventId.enum";
-import { ListenerHandler } from "../decorators/ChatListener.decorator";
-import { Inject } from "typedi";
-import DINames from "../utils/DI.names";
 import ChatCommandsService from "../services/ChatCommands.service";
+import ChatListenersService from "../services/ChatListeners.service";
 
 export default class WebsocketClient {
     private websocketClient: WebSocket | null = null;
@@ -17,6 +15,7 @@ export default class WebsocketClient {
         private onWebsocketConnected: (sessionId: string) => void,
         private onWebsocketDisconnected: () => void,
         readonly chatCommandsService: ChatCommandsService,
+        readonly chatListenersService: ChatListenersService,
         readonly loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('WebsocketClient');
@@ -133,7 +132,7 @@ export default class WebsocketClient {
         // logger.log(`Received notification: ${JSON.stringify(notification)}`);
         if(notification.subscription.type == TwitchEventId.ChannelChatMessage) {
             this.chatCommandsService.handleCommand(notification.event);
-            ListenerHandler(notification.event);
+            this.chatListenersService.handleListener(notification.event);
         }
 
         return;

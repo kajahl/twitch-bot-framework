@@ -16,6 +16,7 @@ import ListenChannelsProvider from '../providers/ListenChannels.provider';
 import { ListenChannelSubscriptionResult } from '../types/ListenChannels.provider.types';
 import NotFoundError from '../errors/NotFound.error';
 import ChatCommandsService from '../services/ChatCommands.service';
+import ChatListenersService from '../services/ChatListeners.service';
 
 @Service(DINames.EventSubClient)
 export default class EventSubClient {
@@ -28,15 +29,15 @@ export default class EventSubClient {
         @Inject(DINames.ConfigService) private readonly config: ConfigService,
         @Inject(DINames.TokenService) private readonly tokenService: TokenService,
         @Inject(DINames.ListenChannelsProvider) private readonly listenChannelsProvider: ListenChannelsProvider,
-        @Inject(DINames.ChatCommandsService) private readonly chatCommandsService: ChatCommandsService,
-        @Inject(DINames.LoggerFactory) private readonly loggerFactory: LoggerFactory
+        @Inject(DINames.ChatCommandsService) chatCommandsService: ChatCommandsService,
+        @Inject(DINames.ChatListenersService) chatListenersService: ChatListenersService,
+        @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('EventSubClient');
         const options = config.getConfig();
         this.clientId = options.clientId;
         this.userId = options.userId;
-        this.websocketClient = new WebsocketClient(this, this.onWebsocketConnected.bind(this), this.onWebsocketDisconnected.bind(this), chatCommandsService, this.loggerFactory);
-
+        this.websocketClient = new WebsocketClient(this, this.onWebsocketConnected.bind(this), this.onWebsocketDisconnected.bind(this), chatCommandsService, chatListenersService, loggerFactory);
         this.logger.debug('Initialized');
     }
 
@@ -71,7 +72,7 @@ export default class EventSubClient {
                     failedSubscriptions.push({
                         success: false,
                         channel,
-                        code: err.response?.status || -1
+                        code: err.response?.status || -1,
                     });
                 });
         });
@@ -87,9 +88,9 @@ export default class EventSubClient {
                     // Jeżeli nie znajdzie subskrypcji, to zwróci NotFoundError
                     // W normalnym przypadku request by zwrócił 404 ale tutaj nawet nie wywołuje się request
                     let code = err.response?.status || -1;
-                    let message : string | undefined = undefined;
-                    if(code == -1) {
-                        if(err instanceof NotFoundError) {
+                    let message: string | undefined = undefined;
+                    if (code == -1) {
+                        if (err instanceof NotFoundError) {
                             code = 404;
                             message = err.message;
                         }
@@ -99,15 +100,15 @@ export default class EventSubClient {
                         success: false,
                         channel,
                         code,
-                        message
+                        message,
                     });
                 });
         });
 
         await Promise.all([...subscribePromises, ...unsubscribePromises]).finally(() => {
-            if([...failedSubscriptions, ...failedUnsubscriptions].length == 0) return;
+            if ([...failedSubscriptions, ...failedUnsubscriptions].length == 0) return;
             this.listenChannelsProvider.handleFailedSubscriptions(failedSubscriptions, failedUnsubscriptions);
-        }); 
+        });
     }
 
     /**
