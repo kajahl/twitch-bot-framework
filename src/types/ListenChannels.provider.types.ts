@@ -8,4 +8,5 @@ export type ListenChannelSubscriptionResult = {
     success: boolean;
     channel: string;
     code: number;
+    message?: string;
 }

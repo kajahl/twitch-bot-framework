@@ -14,6 +14,7 @@ import DINames from '../utils/DI.names';
 import ConfigService from '../services/Config.service';
 import ListenChannelsProvider from '../providers/ListenChannels.provider';
 import { ListenChannelSubscriptionResult } from '../types/ListenChannels.provider.types';
+import NotFoundError from '../errors/NotFound.error';
 
 @Service(DINames.EventSubClient)
 export default class EventSubClient {
@@ -80,11 +81,23 @@ export default class EventSubClient {
                     this.logger.info(`Successfully unsubscribed from chat events for channel=${channel}`);
                 })
                 .catch((err) => {
+                    // unlistenChat działa na zasadzie pytania API o subskrypcje i wybraniu tej, która pasuje do kanału
+                    // Jeżeli nie znajdzie subskrypcji, to zwróci NotFoundError
+                    // W normalnym przypadku request by zwrócił 404 ale tutaj nawet nie wywołuje się request
+                    let code = err.response?.status || -1;
+                    let message : string | undefined = undefined;
+                    if(code == -1) {
+                        if(err instanceof NotFoundError) {
+                            code = 404;
+                            message = err.message;
+                        }
+                    }
                     this.logger.error(`Failed to unsubscribe from chat events for channel=${channel} - ${err}`);
                     failedUnsubscriptions.push({
                         success: false,
                         channel,
-                        code: err.response?.status || -1
+                        code,
+                        message
                     });
                 });
         });
@@ -190,11 +203,11 @@ export default class EventSubClient {
      */
     async unlistenChat(channelId: string, asUserId: string = this.userId) {
         const userTokenObject = await this.tokenService.getUserTokenObjectById(asUserId);
-        if (!userTokenObject) throw new Error('User token not found');
+        if (!userTokenObject) throw new NotFoundError('User token not found');
         // TODO: Cache dla subskrypcji
         const data = await this.list(userTokenObject.access_token, TwitchEventId.ChannelChatMessage);
         const subscription = data.data.filter((sub) => sub.status == 'enabled').find((sub) => sub.condition.broadcaster_user_id === channelId);
-        if (!subscription) throw new Error('Subscription not found');
+        if (!subscription) throw new NotFoundError('Subscription not found');
         return this.unsubscribe(subscription.id, userTokenObject.access_token);
     }
 }
