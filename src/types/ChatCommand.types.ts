@@ -12,7 +12,6 @@ export type ChatCommandDecoratorOptions = {
     name: string;
     keyword: string;
     aliases?: string[];
-    ignorePrefix?: boolean;
     ignoreCase?: boolean;
     transistent?: boolean;
 };

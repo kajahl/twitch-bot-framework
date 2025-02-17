@@ -15,6 +15,7 @@ import ConfigService from '../services/Config.service';
 import ListenChannelsProvider from '../providers/ListenChannels.provider';
 import { ListenChannelSubscriptionResult } from '../types/ListenChannels.provider.types';
 import NotFoundError from '../errors/NotFound.error';
+import ChatCommandsService from '../services/ChatCommands.service';
 
 @Service(DINames.EventSubClient)
 export default class EventSubClient {
@@ -27,13 +28,14 @@ export default class EventSubClient {
         @Inject(DINames.ConfigService) private readonly config: ConfigService,
         @Inject(DINames.TokenService) private readonly tokenService: TokenService,
         @Inject(DINames.ListenChannelsProvider) private readonly listenChannelsProvider: ListenChannelsProvider,
+        @Inject(DINames.ChatCommandsService) private readonly chatCommandsService: ChatCommandsService,
         @Inject(DINames.LoggerFactory) private readonly loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('EventSubClient');
         const options = config.getConfig();
         this.clientId = options.clientId;
         this.userId = options.userId;
-        this.websocketClient = new WebsocketClient(this, this.onWebsocketConnected.bind(this), this.onWebsocketDisconnected.bind(this), this.loggerFactory);
+        this.websocketClient = new WebsocketClient(this, this.onWebsocketConnected.bind(this), this.onWebsocketDisconnected.bind(this), chatCommandsService, this.loggerFactory);
 
         this.logger.debug('Initialized');
     }

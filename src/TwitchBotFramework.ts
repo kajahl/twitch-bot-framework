@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { Inject, Service } from 'typedi';
-import { chatCommandsContainer, getAllKeywords } from './decorators/ChatCommand.decorator';
 import { chatListenersContainer } from './decorators/ChatListener.decorator';
 import { TokenService } from './services/Token.service';
 import EventSubClient from './clients/EventSub.client';
@@ -8,6 +7,7 @@ import DINames from './utils/DI.names';
 import ConfigService from './services/Config.service';
 import { Logger, LoggerFactory } from './utils/Logger';
 import APIClient from './clients/Api.client';
+import ChatCommandsService from './services/ChatCommands.service';
 
 @Service(DINames.TwitchBotFramework)
 export default class TwitchBotFramework {
@@ -18,6 +18,7 @@ export default class TwitchBotFramework {
         @Inject(DINames.TokenService) readonly tokenService: TokenService,
         @Inject(DINames.EventSubClient) readonly eventSubClient: EventSubClient,
         @Inject(DINames.APIClient) readonly apiClient: APIClient,
+        @Inject(DINames.ChatCommandsService) readonly chatCommandsService: ChatCommandsService,
         @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('TwitchBotFramework');
@@ -25,7 +26,7 @@ export default class TwitchBotFramework {
         // Enable chat commands and listeners
         if (options.commands) {
             options.commands.forEach((command) => {
-                chatCommandsContainer.enable(command);
+                ChatCommandsService.getChatCommandsContainer().enable(command);
             });
         }
         if (options.listeners) {
@@ -33,9 +34,6 @@ export default class TwitchBotFramework {
                 chatListenersContainer.enable(listener);
             });
         }
-
-        // TODO: Change this
-        getAllKeywords(); // Load command keywords to cache (throw error if at startup instad of runtime)
 
         this.logger.debug('Initialized');
     }

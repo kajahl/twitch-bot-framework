@@ -9,6 +9,8 @@ enum DINames {
     LoggerFactory = 'LOGGER_FACTORY',
     TokenRepository = 'TOKEN_REPOSITORY',
     ListenChannelsProvider = 'LISTEN_CHANNELS_PROVIDER',
+    ChannelOptionsProvider = 'CHANNEL_OPTIONS_PROVIDER',
+    ChatCommandsService = 'CHAT_COMMANDS_SERVICE',
 
     UserDefinedListenChannelsProvider = 'USER_DEFINED_LISTEN_CHANNELS_PROVIDER',
 }

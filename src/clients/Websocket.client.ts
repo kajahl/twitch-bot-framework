@@ -2,9 +2,11 @@ import { NotificationPayload, RevocationPayload, WebsocketMessage, WebsocketMess
 import { Logger, LoggerFactory } from "../utils/Logger";
 import { WebSocket } from "ws";
 import EventSubClient from "./EventSub.client";
-import { CommandHandler } from "../decorators/ChatCommand.decorator";
 import TwitchEventId from "../enums/TwitchEventId.enum";
 import { ListenerHandler } from "../decorators/ChatListener.decorator";
+import { Inject } from "typedi";
+import DINames from "../utils/DI.names";
+import ChatCommandsService from "../services/ChatCommands.service";
 
 export default class WebsocketClient {
     private websocketClient: WebSocket | null = null;
@@ -14,6 +16,7 @@ export default class WebsocketClient {
         private readonly eventSubClient: EventSubClient,
         private onWebsocketConnected: (sessionId: string) => void,
         private onWebsocketDisconnected: () => void,
+        readonly chatCommandsService: ChatCommandsService,
         readonly loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('WebsocketClient');
@@ -129,7 +132,7 @@ export default class WebsocketClient {
         const notification = websocketNotification.payload;
         // logger.log(`Received notification: ${JSON.stringify(notification)}`);
         if(notification.subscription.type == TwitchEventId.ChannelChatMessage) {
-            CommandHandler(notification.event);
+            this.chatCommandsService.handleCommand(notification.event);
             ListenerHandler(notification.event);
         }
 
