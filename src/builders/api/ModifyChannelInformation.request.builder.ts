@@ -25,7 +25,7 @@ export default class ModifyChannelInformationRequestConfigBuilder extends BaseRe
     errorResponseCodes: number[] = [400, 401, 403, 409, 500];
 
     constructor() {
-        super('PATCH', 'channels', {
+        super('PATCH', 'https://api.twitch.tv/helix/channels', {
             broadcaster_id: null
         }, {
             game_id: null,

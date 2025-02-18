@@ -29,7 +29,7 @@ export default class GetCheermotesRequestConfigBuilder extends BaseRequestBuilde
     errorResponseCodes: number[] = [400, 1, 2, 3];
 
     constructor() {
-        super('GET', 'bits/cheermotes', {
+        super('GET', 'https://api.twitch.tv/helix/bits/cheermotes', {
             broadcaster_id: null
         }, {}, 'broadcaster_id');
     }

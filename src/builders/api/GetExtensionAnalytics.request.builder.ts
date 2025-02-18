@@ -26,7 +26,7 @@ export default class GetExtensionAnalyticsRequestConfigBuilder extends BaseReque
     errorResponseCodes: number[] = [400, 401, 404];
 
     constructor() {
-        super('GET', 'analytics/extensions', {
+        super('GET', 'https://api.twitch.tv/helix/analytics/extensions', {
             extension_id: null,
             type: null,
             started_at: null,

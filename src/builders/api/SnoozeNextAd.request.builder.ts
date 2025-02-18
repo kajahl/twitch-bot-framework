@@ -19,7 +19,7 @@ export default class SnoozeNextAdRequestConfigBuilder extends BaseRequestBuilder
     errorResponseCodes: number[] = [400, 429, 500];
 
     constructor() {
-        super('POST', 'channels/ads/schedule/snooze', {
+        super('POST', 'https://api.twitch.tv/helix/channels/ads/schedule/snooze', {
             broadcaster_id: null
         }, {}, 'broadcaster_id');
     }

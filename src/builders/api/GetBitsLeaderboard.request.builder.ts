@@ -26,7 +26,7 @@ export default class GetBitsLeaderboardRequestConfigBuilder extends BaseRequestB
     errorResponseCodes: number[] = [400, 401, 403];
 
     constructor() {
-        super('GET', 'bits/leaderboard', {
+        super('GET', 'https://api.twitch.tv/helix/bits/leaderboard', {
             count: null,
             period: null,
             started_at: null,

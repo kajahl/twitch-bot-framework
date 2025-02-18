@@ -19,7 +19,7 @@ export default class StartCommercialRequestConfigBuilder extends BaseRequestBuil
     errorResponseCodes: number[] = [400, 401, 404, 429];
 
     constructor() {
-        super('POST', 'channels/commercial', {}, {
+        super('POST', 'https://api.twitch.tv/helix/channels/commercial', {}, {
             broadcaster_id: null,
             length: null,
         }, null, 'broadcaster_id');

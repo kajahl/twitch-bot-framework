@@ -27,7 +27,7 @@ export default class GetChannelInformationRequestConfigBuilder extends BaseReque
     errorResponseCodes: number[] = [400, 401, 429, 500];
 
     constructor() {
-        super('GET', 'channels', {
+        super('GET', 'https://api.twitch.tv/helix/channels', {
             broadcaster_id: null
         }, {}, 'broadcaster_id');
     }

@@ -19,7 +19,7 @@ export default class GetChannelEditorsRequestConfigBuilder extends BaseRequestBu
     errorResponseCodes: number[] = [400, 401];
 
     constructor() {
-        super('POST', 'channels/editors', {
+        super('POST', 'https://api.twitch.tv/helix/channels/editors', {
             broadcaster_id: null
         }, {}, 'broadcaster_id');
     }

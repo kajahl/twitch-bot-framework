@@ -39,7 +39,7 @@ export default class GetExtensionTransactionsRequestConfigBuilder extends BaseRe
     errorResponseCodes: number[] = [400, 401, 404];
 
     constructor() {
-        super('GET', 'extensions/transactions', {
+        super('GET', 'https://api.twitch.tv/helix/extensions/transactions', {
             extension_id: null,
             id: null,
             after: null,

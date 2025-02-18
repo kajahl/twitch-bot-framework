@@ -20,7 +20,7 @@ export default class SendChatMessageRequestConfigBuilder extends BaseRequestBuil
     errorResponseCodes: number[] = [400, 403, 422];
 
     constructor() {
-        super('POST', 'chat/messages', {}, {
+        super('POST', 'https://api.twitch.tv/helix/chat/messages', {}, {
             broadcaster_id: null,
             sender_id: null,
             message: null,

@@ -22,7 +22,7 @@ export default class GetAdScheduleRequestConfigBuilder extends BaseRequestBuilde
     errorResponseCodes: number[] = [400, 500];
 
     constructor() {
-        super('GET', 'channels/ads', {
+        super('GET', 'https://api.twitch.tv/helix/channels/ads', {
             broadcaster_id: null
         }, {}, 'broadcaster_id');
     }

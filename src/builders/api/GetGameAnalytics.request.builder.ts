@@ -26,7 +26,7 @@ export default class GetGameAnalyticsRequestConfigBuilder extends BaseRequestBui
     errorResponseCodes: number[] = [400, 401, 404];
 
     constructor() {
-        super('GET', 'analytics/games', {
+        super('GET', 'https://api.twitch.tv/helix/analytics/games', {
             game_id: null,
             type: null,
             started_at: null,
