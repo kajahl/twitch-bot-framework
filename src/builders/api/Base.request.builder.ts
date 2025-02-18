@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig, Method } from 'axios';
 import { Logger } from '../../utils/Logger';
+import qs from 'qs';
 
 // TODO: .env => API_URL = "https://api.twitch.tv/helix/"
 
@@ -46,6 +47,9 @@ export default abstract class BaseRequestBuilder {
             },
             data,
             params: query,
+            paramsSerializer: (params) => {
+                return qs.stringify(params, { arrayFormat: 'repeat' });
+            },
         };
     }
 

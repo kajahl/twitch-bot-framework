@@ -27,18 +27,18 @@ export default class GetUsersRequestBuilder extends BaseRequestBuilder {
 
     constructor() {
         super('GET', 'https://api.twitch.tv/helix/users', {
-            logins: [],
-            ids: []
+            login: [],
+            id: []
         });
     }
 
     public addUserId(userId: string): this {
-        this.config.data.ids.push(userId);
+        this.config.params.id.push(userId);
         return this;
     }
 
     public addLogin(login: string): this {
-        this.config.data.logins.push(login);
+        this.config.params.login.push(login);
         return this;
     }
 
@@ -58,7 +58,10 @@ export default class GetUsersRequestBuilder extends BaseRequestBuilder {
 
     private readonly maxLoginsAndIds = 100;
     public checkTypes(): boolean {
-        if(this.config.data.logins.length + this.config.data.ids.length > this.maxLoginsAndIds) return false;
+        const loginLength = this.config.params.login ? this.config.params.login.length : 0;
+        const idLength = this.config.params.id ? this.config.params.id.length : 0;
+        if(loginLength === 0 && idLength === 0) throw new Error('At least one login or id is required');
+        if(loginLength + idLength > this.maxLoginsAndIds) throw new Error(`Maximum of ${this.maxLoginsAndIds} logins and ids combined. ${loginLength} logins and ${idLength} ids provided`);
         return true;
     }
 }
