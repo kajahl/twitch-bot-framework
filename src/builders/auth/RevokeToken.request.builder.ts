@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from "axios";
 
-export default class RevokeTokenRequestConfigBuilder {
+export default class RevokeTokenRequestBuilder {
     private config: AxiosRequestConfig = {
         url: 'https://id.twitch.tv/oauth2/revoke',
         method: 'POST',
@@ -15,12 +15,12 @@ export default class RevokeTokenRequestConfigBuilder {
 
     constructor() {}
 
-    public setClientId(clientId: string): RevokeTokenRequestConfigBuilder {
+    public setClientId(clientId: string): this {
         this.config.data.client_id = clientId;
         return this;
     }
 
-    public setToken(token: string): RevokeTokenRequestConfigBuilder {
+    public setToken(token: string): this {
         this.config.data.token = token;
         return this;
     }

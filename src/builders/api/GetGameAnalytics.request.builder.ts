@@ -33,7 +33,7 @@ export default class GetGameAnalyticsRequestConfigBuilder extends BaseRequestBui
             ended_at: null,
             first: null,
             after: null,
-        }, null);
+        });
     }
 
     public setGameId(game_id: string): this {

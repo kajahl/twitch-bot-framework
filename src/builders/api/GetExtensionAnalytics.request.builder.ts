@@ -33,7 +33,7 @@ export default class GetExtensionAnalyticsRequestConfigBuilder extends BaseReque
             ended_at: null,
             first: null,
             after: null,
-        }, null);
+        });
     }
 
     public setExtensionId(extension_id: string): this {

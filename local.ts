@@ -13,9 +13,10 @@ const userId = process.env.USER_ID as string;
 const userRefreshToken = process.env.USER_REFRESH_TOKEN as string;
 
 class ListenChannelsProvider implements IListenChannels {
+    private i = 0;
     private channels: string[] = ['87576158', '82197170'];
     async getChannelIds(): Promise<string[]> {
-        return this.channels;
+        return this.i++ % 2 == 0 ? this.channels : [];
     }
 }
 

@@ -44,7 +44,7 @@ export default class GetExtensionTransactionsRequestConfigBuilder extends BaseRe
             id: null,
             after: null,
             first: null,
-        }, null);
+        });
     }
 
     public setExtensionId(extension_id: string): this {

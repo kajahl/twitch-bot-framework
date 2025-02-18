@@ -19,10 +19,10 @@ export default class StartCommercialRequestConfigBuilder extends BaseRequestBuil
     errorResponseCodes: number[] = [400, 401, 404, 429];
 
     constructor() {
-        super('POST', 'channels/commercial', {
+        super('POST', 'channels/commercial', {}, {
             broadcaster_id: null,
             length: null,
-        }, 'broadcaster_id');
+        }, null, 'broadcaster_id');
     }
 
     public setBroadcasterId(broadcasterId: string): this {

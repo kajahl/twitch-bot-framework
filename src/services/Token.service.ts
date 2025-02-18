@@ -1,5 +1,4 @@
 import axios from "axios";
-import AccessTokenRequestConfigBuilder from "../builders/tokens/AccessTokenRequestConfig.builder";
 import { Logger, LoggerFactory } from "../utils/Logger";
 import TwtichPermissionScope from "../enums/TwitchPermissionScope.enum";
 import { Inject, Service } from "typedi";
@@ -8,6 +7,7 @@ import ConfigService from "./Config.service";
 import DINames from "../utils/DI.names";
 import TokenRepository from "../repositories/Token.repository";
 import { AppToken, UserToken } from "../types/Token.repository.types";
+import AccessTokenRequestBuilder from "../builders/auth/AccessToken.request.builder";
 
 @Service(DINames.TokenService)
 export class TokenService {
@@ -44,7 +44,7 @@ export class TokenService {
 
         // else: Generate new token
         this.logger.log(`AppToken is expired or not saved. Requesting new app access token...`);
-        const accessTokenRequestConfig = new AccessTokenRequestConfigBuilder()
+        const accessTokenRequestConfig = new AccessTokenRequestBuilder()
             .setClientId(this.clientId)
             .setClientSecret(this.clientSecret)
             .forClient()
@@ -92,7 +92,7 @@ export class TokenService {
         // else: Generate new token // Return existing request
         if(this._userAccessTokenRequests[userId] == undefined) {
             this.logger.info(`Found refresh token for user id=${userId}. Requesting new access token...`);
-            const accessTokenRequestConfig = new AccessTokenRequestConfigBuilder()
+            const accessTokenRequestConfig = new AccessTokenRequestBuilder()
                 .setClientId(this.clientId)
                 .setClientSecret(this.clientSecret)
                 .forUser(refreshToken)

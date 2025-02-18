@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from "axios";
 
-export default class ValidateTokenRequestConfigBuilder {
+export default class ValidateTokenRequestBuilder {
     private config: AxiosRequestConfig = {
         url: 'https://id.twitch.tv/oauth2/validate',
         method: 'GET',
@@ -11,7 +11,7 @@ export default class ValidateTokenRequestConfigBuilder {
 
     constructor() {}
 
-    setAccessToken(accessToken: string): ValidateTokenRequestConfigBuilder {
+    setAccessToken(accessToken: string): this {
         if(this.config.headers == undefined) throw new Error('Headers are required');
         this.config.headers.Authorization = `OAuth ${accessToken}`;
         return this;

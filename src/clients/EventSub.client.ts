@@ -1,13 +1,10 @@
 import axios from 'axios';
-import CreateEventSubscriptionRequestConfigBuilder from '../builders/eventsub/CreateEventSubscriptionRequestConfig.builder';
 import TwitchEventId from '../enums/TwitchEventId.enum';
 import { TokenService } from '../services/Token.service';
 import { MappedTwitchEventId, TwitchEventData } from '../types/EventSub.types';
 import { Logger, LoggerFactory } from '../utils/Logger';
 import WebsocketClient from './Websocket.client';
 import { CreateSubscriptionResponse, DeleteSubscriptionResponse } from '../types/APIClient.types';
-import SubscribedEventListRequestConfigBuilder from '../builders/eventsub/SubscribedEventListRequestConfig.builder';
-import DeleteEventSubscriptionRequestConfigBuilder from '../builders/eventsub/DeleteEventSubscriptionRequestConfig.builder';
 import TwtichPermissionScope from '../enums/TwitchPermissionScope.enum';
 import { Inject, Service } from 'typedi';
 import DINames from '../utils/DI.names';
@@ -17,6 +14,9 @@ import { ListenChannelSubscriptionResult } from '../types/ListenChannels.provide
 import NotFoundError from '../errors/NotFound.error';
 import ChatCommandsService from '../services/ChatCommands.service';
 import ChatListenersService from '../services/ChatListeners.service';
+import CreateEventSubSubscriptionRequestConfigBuilder from '../builders/api/CreateEventSubSubscription.request.builder';
+import GetEventSubSubscriptionsRequestConfigBuilder, { GetEventSubSubscriptionsResponse } from '../builders/api/GetEventSubSubscriptions.request.builder';
+import DeleteEventSubSubscriptionRequestConfigBuilder from '../builders/api/DeleteEventSubSubscription.request.builder';
 
 @Service(DINames.EventSubClient)
 export default class EventSubClient {
@@ -122,7 +122,7 @@ export default class EventSubClient {
      */
     private async subscribe<T extends MappedTwitchEventId>(type: T, condition: TwitchEventData<T>['condition'], version: TwitchEventData<T>['version'], token: string) {
         if (!this.weboscketSessionId) throw new Error('Websocket session ID not found');
-        const requestConfig = new CreateEventSubscriptionRequestConfigBuilder(type).setClientId(this.clientId).setAccessToken(token).setType(type).setCondition(condition).setVersion(version).setSessionId(this.weboscketSessionId).build();
+        const requestConfig = new CreateEventSubSubscriptionRequestConfigBuilder().setClientId(this.clientId).setAccessToken(token).setType(type).setCondition(condition).setVersion(version).setSessionId(this.weboscketSessionId).build();
         const response = await axios.request<CreateSubscriptionResponse>(requestConfig);
         if (response.status !== 202) {
             const errorMessage = `Failed to subscribe to event ${type} with condition ${JSON.stringify(condition)}`;
@@ -133,8 +133,25 @@ export default class EventSubClient {
         return response.data;
     }
 
-    private async list(token: string, type: MappedTwitchEventId | null = null) {
-        const data = await new SubscribedEventListRequestConfigBuilder().setClientId(this.clientId).setAccessToken(token).setType(type).make();
+    private async list(userId: string, options: {userId?: string, status?: string, type?: MappedTwitchEventId}, after: string | null = null): Promise<GetEventSubSubscriptionsResponse> {
+        
+        // TODO: Handle pagination
+
+        const userTokenObject = await this.tokenService.getUserTokenObjectById(userId);
+        if (!userTokenObject) throw new NotFoundError('User token not found');
+        const requestBuilder = new GetEventSubSubscriptionsRequestConfigBuilder().setClientId(this.clientId).setAccessToken(userTokenObject.access_token);
+        if(options.userId !== undefined) requestBuilder.setUserId(options.userId);
+        if(options.status !== undefined) requestBuilder.setStatus(options.status);
+        if(options.type !== undefined) requestBuilder.setType(options.type);
+        const requestConfig = requestBuilder.build();
+        const response = await axios.request<GetEventSubSubscriptionsResponse>(requestConfig);
+        if (!requestBuilder.correctResponseCodes.includes(response.status)) {
+            const errorMessage = `[${response.status}] Failed to get subscriptions user=${options.userId ? options.userId : '(any)'} type=${options.type ? options.type : '(any)'}, status=${options.status ? options.status : '(any)'} for user ${userId} `;
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+        const data = response.data;
+        this.logger.debug(`Got ${data.data.length} subscriptions user=${options.userId ? options.userId : '(any)'} type=${options.type ? options.type : '(any)'}, status=${options.status ? options.status : '(any)'} for user ${userId}`);
         return data;
     }
 
@@ -145,10 +162,10 @@ export default class EventSubClient {
      * @throws Error if unsubscription failed
      */
     private async unsubscribe(id: string, token: string) {
-        const requestConfig = new DeleteEventSubscriptionRequestConfigBuilder().setClientId(this.clientId).setAccessToken(token).setSubscriptionId(id).build();
+        const requestConfig = new DeleteEventSubSubscriptionRequestConfigBuilder().setClientId(this.clientId).setAccessToken(token).setId(id).build();
         const response = await axios.request<DeleteSubscriptionResponse>(requestConfig);
         if (response.status !== 204) {
-            const errorMessage = `Failed to unsubscribe from event ${id}`;
+            const errorMessage = `[${response.status}] Failed to unsubscribe from event ${id}`;
             this.logger.error(errorMessage);
             throw new Error(errorMessage);
         }
@@ -204,13 +221,16 @@ export default class EventSubClient {
      * Unsubscribes from chat events
      * //TODO
      */
-    async unlistenChat(channelId: string, asUserId: string = this.userId) {
+    async unlistenChat(channelId: string, asUserId: string = this.config.getConfig().userId) {
+        // TODO: Cache dla subskrypcji
+        const data = await this.list(asUserId, { status: 'enabled' });
+
+        const subscription = data.data.filter((sub) => sub.type == TwitchEventId.ChannelChatMessage).find((sub) => sub.condition.broadcaster_user_id == channelId && sub.condition.user_id == asUserId);
+        if (!subscription) throw new NotFoundError('Subscription not found');
+
         const userTokenObject = await this.tokenService.getUserTokenObjectById(asUserId);
         if (!userTokenObject) throw new NotFoundError('User token not found');
-        // TODO: Cache dla subskrypcji
-        const data = await this.list(userTokenObject.access_token, TwitchEventId.ChannelChatMessage);
-        const subscription = data.data.filter((sub) => sub.status == 'enabled').find((sub) => sub.condition.broadcaster_user_id === channelId);
-        if (!subscription) throw new NotFoundError('Subscription not found');
+
         return this.unsubscribe(subscription.id, userTokenObject.access_token);
     }
 }

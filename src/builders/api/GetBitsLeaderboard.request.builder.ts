@@ -31,7 +31,7 @@ export default class GetBitsLeaderboardRequestConfigBuilder extends BaseRequestB
             period: null,
             started_at: null,
             user_id: null,
-        }, null);
+        });
     }
 
     public setCount(count: number): this {

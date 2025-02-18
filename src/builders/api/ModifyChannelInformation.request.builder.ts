@@ -27,16 +27,25 @@ export default class ModifyChannelInformationRequestConfigBuilder extends BaseRe
     constructor() {
         super('PATCH', 'channels', {
             broadcaster_id: null
+        }, {
+            game_id: null,
+            broadcaster_language: null,
+            title: null,
+            delay: null,
+            tags: null,
+            content_classification_labels: null,
         }, 'broadcaster_id');
     }
 
+    // TODO: Data
+
     public setBroadcasterId(broadcasterId: string): this {
-        this.config.data.broadcaster_id = broadcasterId;
+        this.config.params.broadcaster_id = broadcasterId;
         return this;
     }
 
     public checkTypes(): boolean {
-        if(this.config.data.broadcaster_id == null) throw new Error('Broadcaster ID is required');
+        if(this.config.params.broadcaster_id == null) throw new Error('Broadcaster ID is required');
         return true;
     }
 }

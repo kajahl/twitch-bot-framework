@@ -1,27 +1,30 @@
-// https://dev.twitch.tv/docs/api/reference/#get-channel-editors
+// https://dev.twitch.tv/docs/api/reference/#get-ad-schedule
 
 import BaseRequestBuilder from "./Base.request.builder";
 
 // Typy
 
-export type GetChannelEditorsResponse = {
+export type GetAdScheduleResponse = {
     data: {
-        user_id: string;
-        user_name: string;
-        created_at: string;
+        snooze_count: number;
+        snooze_refresh_at: string;
+        next_ad_at: string;
+        duration: number;
+        last_ad_at: string;
+        preroll_free_time: number;
     }[]
 }
 
 // Builder
 
-export default class GetChannelEditorsRequestConfigBuilder extends BaseRequestBuilder {
+export default class GetAdScheduleRequestConfigBuilder extends BaseRequestBuilder {
     correctResponseCodes: number[] = [200];
-    errorResponseCodes: number[] = [400, 401];
+    errorResponseCodes: number[] = [400, 500];
 
     constructor() {
-        super('POST', 'channels/editors', {
+        super('GET', 'channels/ads', {
             broadcaster_id: null
-        }, 'broadcaster_id');
+        }, {}, 'broadcaster_id');
     }
 
     public setBroadcasterId(broadcasterId: string): this {

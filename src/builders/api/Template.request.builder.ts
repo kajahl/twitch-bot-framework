@@ -17,9 +17,7 @@ export default class XXXRequestConfigBuilder extends BaseRequestBuilder {
     errorResponseCodes: number[] = [400, 1, 2, 3];
 
     constructor() {
-        super('POST', 'XXX', {
-            XXX: null
-        }, 'XXX');
+        super('POST', 'XXX', {}, {}, null, null);
     }
 
     public setBroadcasterId(broadcasterId: string): this {

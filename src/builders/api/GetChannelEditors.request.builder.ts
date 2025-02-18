@@ -1,27 +1,27 @@
-// https://dev.twitch.tv/docs/api/reference/#snooze-next-ad
+// https://dev.twitch.tv/docs/api/reference/#get-channel-editors
 
 import BaseRequestBuilder from "./Base.request.builder";
 
 // Typy
 
-export type SnoozeNextAdResponse = {
+export type GetChannelEditorsResponse = {
     data: {
-        snooze_count: number;
-        snooze_refresh_at: string;
-        next_ad_at: string;
+        user_id: string;
+        user_name: string;
+        created_at: string;
     }[]
 }
 
 // Builder
 
-export default class SnoozeNextAdRequestConfigBuilder extends BaseRequestBuilder {
+export default class GetChannelEditorsRequestConfigBuilder extends BaseRequestBuilder {
     correctResponseCodes: number[] = [200];
-    errorResponseCodes: number[] = [400, 429, 500];
+    errorResponseCodes: number[] = [400, 401];
 
     constructor() {
-        super('POST', 'channels/ads/schedule/snooze', {
+        super('POST', 'channels/editors', {
             broadcaster_id: null
-        }, 'broadcaster_id');
+        }, {}, 'broadcaster_id');
     }
 
     public setBroadcasterId(broadcasterId: string): this {

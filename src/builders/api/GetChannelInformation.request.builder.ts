@@ -29,7 +29,7 @@ export default class GetChannelInformationRequestConfigBuilder extends BaseReque
     constructor() {
         super('GET', 'channels', {
             broadcaster_id: null
-        }, 'broadcaster_id');
+        }, {}, 'broadcaster_id');
     }
 
     public setBroadcasterId(broadcasterId: string | string[]): this {

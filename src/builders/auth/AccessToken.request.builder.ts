@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-export default class AccessTokenRequestConfigBuilder {
+export default class AccessTokenRequestBuilder {
     private config: AxiosRequestConfig = {
         url: 'https://id.twitch.tv/oauth2/token',
         method: 'POST',
@@ -13,23 +13,23 @@ export default class AccessTokenRequestConfigBuilder {
 
     constructor() {}
 
-    public setClientId(clientId: string): AccessTokenRequestConfigBuilder {
+    public setClientId(clientId: string): this {
         this.config.data.client_id = clientId;
         return this;
     }
 
-    public setClientSecret(clientSecret: string): AccessTokenRequestConfigBuilder {
+    public setClientSecret(clientSecret: string): this {
         this.config.data.client_secret = clientSecret;
         return this;
     }
 
-    public forClient(): AccessTokenRequestConfigBuilder {
+    public forClient(): this {
         if(this.config.data.grant_type !== null) throw new Error('Grant type already set');
         this.config.data.grant_type = 'client_credentials';
         return this;
     }
 
-    public forUser(refresh_token: string): AccessTokenRequestConfigBuilder {
+    public forUser(refresh_token: string): this {
         if(this.config.data.grant_type !== null) throw new Error('Grant type already set');
         this.config.data.grant_type = 'refresh_token';
         this.config.data.refresh_token = refresh_token;

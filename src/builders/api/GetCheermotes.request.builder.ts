@@ -31,7 +31,7 @@ export default class GetCheermotesRequestConfigBuilder extends BaseRequestBuilde
     constructor() {
         super('GET', 'bits/cheermotes', {
             broadcaster_id: null
-        }, 'broadcaster_id');
+        }, {}, 'broadcaster_id');
     }
 
     public setBroadcasterId(broadcasterId: string): this {

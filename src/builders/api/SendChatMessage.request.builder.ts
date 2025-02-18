@@ -20,12 +20,12 @@ export default class SendChatMessageRequestConfigBuilder extends BaseRequestBuil
     errorResponseCodes: number[] = [400, 403, 422];
 
     constructor() {
-        super('POST', 'chat/messages', {
+        super('POST', 'chat/messages', {}, {
             broadcaster_id: null,
             sender_id: null,
             message: null,
             reply_parent_message_id: null,
-        }, 'sender_id');
+        }, null, 'sender_id');
     }
 
     public setBroadcasterId(broadcasterId: string): this {
