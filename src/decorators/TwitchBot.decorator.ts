@@ -12,6 +12,8 @@ import { IChannelOptionsProvider } from '../types/ChannelOptions.provider';
 import { ChannelOptionsProvider } from '../providers/ChannelOptions.provider';
 import ChatCommandsService from '../services/ChatCommands.service';
 import ChatListenersService from '../services/ChatListeners.service';
+import TwitchUserCache from '../cache/TwitchUser.cache';
+import TwitchUserCacheFetchStrategy from '../cache/fetchers/TwitchUser.cache.fetch.strategy';
 
 // Typy
 
@@ -52,8 +54,15 @@ export function TwitchBot(config: ITwitchBotConfig): ClassDecorator {
         Container.set(DINames.UserDefinedListenChannelsProvider, new config.listenChannels.provider());
         Container.set(DINames.ChannelOptionsProvider, new ChannelOptionsProvider(config.channelOptions.provider, Container.get(DINames.ConfigService), Container.get(DINames.LoggerFactory)));
         
+        // Chat
+
         Container.set(DINames.ChatCommandsService, new ChatCommandsService(Container.get(DINames.ChannelOptionsProvider), Container.get(DINames.LoggerFactory)));
         Container.set(DINames.ChatListenersService, new ChatListenersService(Container.get(DINames.ChannelOptionsProvider), Container.get(DINames.LoggerFactory)));
+
+        // Cache
+
+        Container.set(DINames.TwitchUserCacheFetchStrategy, new TwitchUserCacheFetchStrategy(Container.get(DINames.APIClient)));
+        Container.set(DINames.TwitchUserCache, new TwitchUserCache(Container.get(DINames.TwitchUserCacheFetchStrategy), Container.get(DINames.LoggerFactory)))
 
         Container.get(DINames.TwitchBotFramework);
     };

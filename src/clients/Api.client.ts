@@ -1,5 +1,4 @@
 import { TokenService } from '../services/Token.service';
-import { TwitchUser } from '../cache/managers/UserCache.manager';
 import { Inject, Service } from 'typedi';
 import DINames from '../utils/DI.names';
 import ConfigService from '../services/Config.service';
@@ -95,6 +94,12 @@ export default class APIClient {
     // *                                    *
     // **************************************
 
+    /**
+     * Get user by id
+     * @param id User ID
+     * @returns User data
+     * @throws Error if user not found or multiple users found
+     */
     async getUserById(id: string): Promise<GetUsersResponse['data'][0]> {
         const data = await this.getUsers({ ids: [id] });
         if (data.length === 0) throw new Error(`User not found by id=${id}`);
