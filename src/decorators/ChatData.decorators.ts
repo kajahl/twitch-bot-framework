@@ -1,9 +1,4 @@
-export enum ChatDataType {
-    RAW = 'RAW_DATA',
-    SENDER = 'USER',
-    CHAT = 'CHAT',
-    CHANNEL = 'CHANNEL',
-}
+import { ChatDataType } from "../types/ChatDataInjector.types";
 
 function CreateChatDataDecorator(type: ChatDataType) {
     return function (): ParameterDecorator {
@@ -25,7 +20,8 @@ export function extractDataAccess(type: ChatDataType, target: any, propertyKey: 
 
 const Raw = CreateChatDataDecorator(ChatDataType.RAW);
 const Sender = CreateChatDataDecorator(ChatDataType.SENDER);
-const Chat = CreateChatDataDecorator(ChatDataType.CHAT);
-const Channel = CreateChatDataDecorator(ChatDataType.CHANNEL);
+const Broadcaster = CreateChatDataDecorator(ChatDataType.BROADCASTER);
+const MessageData = CreateChatDataDecorator(ChatDataType.MESSAGE_DATA);
+const Message = CreateChatDataDecorator(ChatDataType.MESSAGE);
 
-export { Raw, Channel, Chat, Sender };
+export { Raw, Sender, Broadcaster, MessageData, Message };

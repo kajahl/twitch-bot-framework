@@ -36,9 +36,9 @@ import { ChatCommandDecoratorOptions } from './src/types/ChatCommand.types';
 import { ChatListenerDecoratorOptions } from './src/types/ChatListener.types';
 
 // Other Types
-import ChannelChatMessageEventData, {
-    Message, MessageFragment, Badge, BadgeSetId
-} from './src/types/EventSub_Events/ChannelChatMessageEventData.types';
+import ChannelChatMessageEventData from './src/types/EventSub_Events/ChannelChatMessageEventData.types';
+import { Message, MessageFragment } from './src/types/twitch/ChatMessage.types';
+import { Badge, BadgeSetId } from './src/types/twitch/TwitchUser.types';
 
 // Export
 export default TwitchBotFramework;

@@ -23,6 +23,7 @@ enum DINames {
     // Chat 
     ChatCommandsService = 'CHAT_COMMANDS_SERVICE',
     ChatListenersService = 'CHAT_LISTENERS_SERVICE',
+    ChatDataInjectorService = 'CHAT_DATA_INJECTOR_SERVICE',
 
     // Cache-fetchers
     TwitchUserCacheFetchStrategy = 'TWITCH_USER_CACHE_FETCH_STRATEGY',

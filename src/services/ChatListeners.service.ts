@@ -5,6 +5,7 @@ import ChannelChatMessageEventData from '../types/EventSub_Events/ChannelChatMes
 import { Logger, LoggerFactory } from '../utils/Logger';
 import DINames from '../utils/DI.names';
 import { ChannelOptionsProvider } from '../providers/ChannelOptions.provider';
+import ChatDataInjectorService from './ChatDataInjector.service';
 
 @Service(DINames.ChatListenersService)
 export default class ChatListenersService {
@@ -53,6 +54,7 @@ export default class ChatListenersService {
     private readonly logger: Logger;
     constructor(
         @Inject(DINames.ChannelOptionsProvider) private readonly channelOptionsProvider: ChannelOptionsProvider,
+        @Inject(DINames.ChatDataInjectorService) private readonly chatDataInjector: ChatDataInjectorService,
         @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('ChatListenersService');
@@ -68,7 +70,7 @@ export default class ChatListenersService {
 
     handleListener(data: ChannelChatMessageEventData): void {
         const listeners = this.getListenersRegistry().getRegisteredEntries();
-        listeners.forEach((listener) => {
+        listeners.forEach(async (listener) => {
             let instance: ChatListenerInstance;
             try {
                 instance = this.getChatListenersContainer().get(listener.target, true);
@@ -77,7 +79,8 @@ export default class ChatListenersService {
             }
 
             try {
-                instance.execution({ event: data });
+                const args = await this.chatDataInjector.injectParameters(instance, 'execution', data);
+                instance.execution({ event: data }, ...args);
             } catch (error) {
                 this.logger.error(`Error while executing listener ${listener.options.name}: ${error}`);
             }

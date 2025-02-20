@@ -5,6 +5,7 @@ import { GeneralContainer, GeneralFactory, GeneralRegistry, GeneralRegistryEntry
 import { ChatCommandDecoratorOptions, ChatCommandExecution, ChatCommandInstance } from '../types/ChatCommand.types';
 import ChannelChatMessageEventData from '../types/EventSub_Events/ChannelChatMessageEventData.types';
 import { ChannelOptionsProvider } from '../providers/ChannelOptions.provider';
+import ChatDataInjectorService from './ChatDataInjector.service';
 
 export default class ChatCommandsService {
     private static readonly chatCommandsContainer = GeneralContainer.getInstance<GeneralFactory, ChatCommandExecution>();
@@ -54,6 +55,7 @@ export default class ChatCommandsService {
 
     constructor(
         @Inject(DINames.ChannelOptionsProvider) private readonly channelOptionsProvider: ChannelOptionsProvider,
+        @Inject(DINames.ChatDataInjectorService) private readonly chatDataInjector: ChatDataInjectorService,
         @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('ChatCommandsService');
@@ -110,7 +112,8 @@ export default class ChatCommandsService {
 
         try {
             if (methods.includes('guard')) {
-                const guardResult = await instance.guard({ event: data });
+                const args = await this.chatDataInjector.injectParameters(instance, 'guard', data);
+                const guardResult = await instance.guard({ event: data }, ...args);
                 if (!guardResult.canAccess) {
                     this.logger.log(`Guard failed for command ${command.entry.options.name} for user ${data.chatter_user_login} in channel ${data.broadcaster_user_login}`);
                     return;
@@ -118,13 +121,19 @@ export default class ChatCommandsService {
             }
 
             if (methods.includes('preExecution')) {
-                await instance.preExecution({ event: data });
+                const args = await this.chatDataInjector.injectParameters(instance, 'preExecution', data);
+                await instance.preExecution({ event: data }, ...args);
             }
 
-            await instance.execution({ event: data });
+            // Brackets for args isolation
+            {
+                const args = await this.chatDataInjector.injectParameters(instance, 'execution', data);
+                await instance.execution({ event: data }, ...args);
+            }
 
             if (methods.includes('postExecution')) {
-                await instance.postExecution({ event: data });
+                const args = await this.chatDataInjector.injectParameters(instance, 'postExecution', data);
+                await instance.postExecution({ event: data }, ...args);
             }
         } catch (error) {
             this.logger.error(`Error while executing command ${command.entry.options.name}: ${error}`);

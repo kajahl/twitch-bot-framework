@@ -14,6 +14,7 @@ import ChatCommandsService from '../services/ChatCommands.service';
 import ChatListenersService from '../services/ChatListeners.service';
 import TwitchUserCache from '../cache/TwitchUser.cache';
 import TwitchUserCacheFetchStrategy from '../cache/fetchers/TwitchUser.cache.fetch.strategy';
+import ChatDataInjectorService from '../services/ChatDataInjector.service';
 
 // Typy
 
@@ -56,8 +57,9 @@ export function TwitchBot(config: ITwitchBotConfig): ClassDecorator {
         
         // Chat
 
-        Container.set(DINames.ChatCommandsService, new ChatCommandsService(Container.get(DINames.ChannelOptionsProvider), Container.get(DINames.LoggerFactory)));
-        Container.set(DINames.ChatListenersService, new ChatListenersService(Container.get(DINames.ChannelOptionsProvider), Container.get(DINames.LoggerFactory)));
+        Container.set(DINames.ChatDataInjectorService, new ChatDataInjectorService(Container.get(DINames.LoggerFactory)));
+        Container.set(DINames.ChatCommandsService, new ChatCommandsService(Container.get(DINames.ChannelOptionsProvider), Container.get(DINames.ChatDataInjectorService), Container.get(DINames.LoggerFactory)));
+        Container.set(DINames.ChatListenersService, new ChatListenersService(Container.get(DINames.ChannelOptionsProvider), Container.get(DINames.ChatDataInjectorService), Container.get(DINames.LoggerFactory)));
 
         // Cache
 
