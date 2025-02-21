@@ -35,7 +35,7 @@ import IndividualRateLimiterService from "./IndividualRateLimiter.service";
 export default class RateLimiterService {
     private readonly logger: Logger;
 
-    private constructor(
+    constructor(
         @Inject(DINames.LoggerFactory) private readonly loggerFactory: LoggerFactory
     ) {
         this.logger = this.loggerFactory.createLogger('RateLimiterService');
