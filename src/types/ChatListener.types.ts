@@ -18,9 +18,3 @@ export type ChatListenerDecoratorOptions = {
 export type ChatListenerExecution = {
     execution: (...args: any[]) => TorPromiseT<any>;
 };
-
-// Params
-
-export type ChatListenerExecutionData = {
-    event: ChannelChatMessageEventData;
-};
