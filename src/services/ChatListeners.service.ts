@@ -52,7 +52,6 @@ export default class ChatListenersService {
 
     private readonly logger: Logger;
     constructor(
-        @Inject(DINames.ChannelOptionsProvider) private readonly channelOptionsProvider: ChannelOptionsProvider,
         @Inject(DINames.ChatDataInjectorService) private readonly chatDataInjector: ChatDataInjectorService,
         @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
     ) {
