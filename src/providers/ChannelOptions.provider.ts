@@ -1,5 +1,5 @@
 import { Inject } from "typedi";
-import { ChannelOptions, IChannelOptionsProvider } from "../types/ChannelOptions.provider";
+import { TChannelOptions, IChannelOptionsProvider } from "../types/ChannelOptions.provider";
 import DINames from "../utils/DI.names";
 import ConfigService from "../services/Config.service";
 import { Logger, LoggerFactory } from "../utils/Logger";
@@ -20,12 +20,12 @@ export class ChannelOptionsProvider<T extends Record<string, any> = {}> {
         this.logger.debug('Initialized');
     }
 
-    private async getOptions(channelId: string): Promise<ChannelOptions<T>> {
+    private async getOptions(channelId: string): Promise<TChannelOptions<T>> {
         const optionsFromProvider = await this.provider.getOptions(channelId);
         return optionsFromProvider;
     }
 
-    private saveOptions(channelId: string, options: ChannelOptions<T>): void {
+    private saveOptions(channelId: string, options: TChannelOptions<T>): void {
         this.provider.setOptions(channelId, options);
     }
 
@@ -34,12 +34,12 @@ export class ChannelOptionsProvider<T extends Record<string, any> = {}> {
      * @param channelId ChannelId
      * @returns ChannelOptions Record {@link ChannelOptionsRecord}
      */
-    getChannelOptions(channelId: string): ChannelOptions<T> | Promise<ChannelOptions<T>> {
+    getChannelOptions(channelId: string): TChannelOptions<T> | Promise<TChannelOptions<T>> {
         this.logger.debug(`Getting channel options for channel ${channelId}`);
         return this.getOptions(channelId);
     }
 
-    setChannelOptions(channelId: string, options: ChannelOptions<T>): void {
+    setChannelOptions(channelId: string, options: TChannelOptions<T>): void {
         this.logger.debug(`Setting channel options for channel ${channelId}`);
         this.saveOptions(channelId, options);
     }
