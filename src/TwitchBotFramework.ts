@@ -18,7 +18,6 @@ export default class TwitchBotFramework {
         @Inject(DINames.TokenService) readonly tokenService: TokenService,
         @Inject(DINames.EventSubClient) readonly eventSubClient: EventSubClient,
         @Inject(DINames.APIClient) readonly apiClient: APIClient,
-        @Inject(DINames.ChatCommandsService) readonly chatCommandsService: ChatCommandsService,
         @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('TwitchBotFramework');
