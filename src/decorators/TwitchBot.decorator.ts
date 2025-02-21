@@ -78,7 +78,7 @@ export function TwitchBot(config: ITwitchBotConfig): ClassDecorator {
         // Chat
 
         Container.set(DINames.ChatDataInjectorService, new ChatDataInjectorService(Container.get(DINames.LoggerFactory)));
-        Container.set(DINames.ChatCommandsService, new ChatCommandsService(Container.get(DINames.ChannelOptionsProvider), Container.get(DINames.ChatDataInjectorService), Container.get(DINames.LoggerFactory)));
+        Container.set(DINames.ChatCommandsService, new ChatCommandsService(Container.get(DINames.APIClient), Container.get(DINames.ChannelOptionsProvider), Container.get(DINames.ChatDataInjectorService), Container.get(DINames.LoggerFactory)));
         Container.set(DINames.ChatListenersService, new ChatListenersService(Container.get(DINames.ChatDataInjectorService), Container.get(DINames.LoggerFactory)));
 
         // General - Events

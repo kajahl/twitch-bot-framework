@@ -6,6 +6,7 @@ import { ChatCommandDecoratorOptions, ChatCommandExecution, ChatCommandInstance 
 import ChannelChatMessageEventData from '../types/EventSub_Events/ChannelChatMessageEventData.types';
 import { ChannelOptionsProvider } from '../providers/ChannelOptions.provider';
 import ChatDataInjectorService from './ChatDataInjector.service';
+import APIClient from '../clients/Api.client';
 
 export default class ChatCommandsService {
     private static readonly chatCommandsContainer = GeneralContainer.getInstance<GeneralFactory, ChatCommandExecution>();
@@ -54,6 +55,7 @@ export default class ChatCommandsService {
     private readonly allKeywords: string[] = [];
 
     constructor(
+        @Inject(DINames.APIClient) private readonly apiClient: APIClient,
         @Inject(DINames.ChannelOptionsProvider) private readonly channelOptionsProvider: ChannelOptionsProvider,
         @Inject(DINames.ChatDataInjectorService) private readonly chatDataInjector: ChatDataInjectorService,
         @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
@@ -115,7 +117,9 @@ export default class ChatCommandsService {
                 const args = await this.chatDataInjector.injectParameters(instance, 'guard', data);
                 const guardResult = await instance.guard(...args);
                 if (!guardResult.canAccess) {
-                    this.logger.log(`Guard failed for command ${command.entry.options.name} for user ${data.chatter_user_login} in channel ${data.broadcaster_user_login}`);
+                    this.logger.log(`Guard failed for command ${command.entry.options.name} for user ${data.chatter_user_login} in channel ${data.broadcaster_user_login} with reason: ${guardResult.message}`);
+                    if (guardResult.message?.length != 0)
+                        this.apiClient.sendMessage(data.broadcaster_user_id, guardResult.message || "You cannot execute this command!", data.message_id)
                     return;
                 }
             }
