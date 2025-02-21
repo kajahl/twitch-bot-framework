@@ -26,11 +26,14 @@ const Broadcaster = CreateChatDataDecorator(ChatDataType.BROADCASTER);
 const MessageData = CreateChatDataDecorator(ChatDataType.MESSAGE_DATA);
 const Mess = CreateChatDataDecorator(ChatDataType.MESSAGE);
 const MessageUser = CreateChatDataDecorator(ChatDataType.MESSAGE_USER);
+const OptionsProvider = CreateChatDataDecorator(ChatDataType.OPTIONS_PROVIDER);
+const ChannelOptions = CreateChatDataDecorator(ChatDataType.CHANNEL_OPTIONS);
 
 export { 
     Raw, 
     SenderData, Sender, 
     MessageUser,
     BroadcasterData, Broadcaster,
-    MessageData, Mess 
+    MessageData, Mess,
+    OptionsProvider, ChannelOptions
 };

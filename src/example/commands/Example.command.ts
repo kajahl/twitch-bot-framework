@@ -1,8 +1,11 @@
 import { ChatCommand } from "../../decorators/ChatCommand.decorator";
-import { MessageUser, Raw } from "../../decorators/ChatData.decorators";
-import { ChatterUser } from "../../objects/TwitchUser.object";
+import { BroadcasterData, ChannelOptions, Mess, MessageUser, OptionsProvider, Raw } from "../../decorators/ChatData.decorators";
+import { ChatterUser, PartialTwitchUser } from "../../objects/TwitchUser.object";
+import { ChannelOptionsProvider } from "../../providers/ChannelOptions.provider";
 import { ChatCommandExecution, ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPostExecution, ChatCommandPreExecution } from "../../types/ChatCommand.types";
-import ChannelChatMessageEventData from "../../types/EventSub_Events/ChannelChatMessageEventData.types";
+import { ChannelOptionsExtend } from "../../../local";
+import { TwitchChatMessage } from "../../objects/ChatMessage.object";
+
 
 @ChatCommand({ 
     name: 'example',
@@ -19,8 +22,19 @@ export default class ExampleCommand implements ChatCommandExecutionGuard, ChatCo
         console.log('Pre-execution logic');
     }
 
-    async execution(): Promise<void> {
+    async execution(
+        @OptionsProvider() provider: ChannelOptionsProvider<ChannelOptionsExtend>,
+        @ChannelOptions() options: ChannelOptionsExtend,
+        @BroadcasterData() broadcasterData: PartialTwitchUser,
+        @Mess() message: TwitchChatMessage
+    ): Promise<void> {
         console.log('Execution logic');
+        await message.reply(`Example command executed ${options.eXampleExecutionCounter} times.`);
+        console.log(options);
+        provider.setChannelOptions(broadcasterData.getId(), {
+            ...options,
+            eXampleExecutionCounter: options.eXampleExecutionCounter + 1
+        })
     }
 
     async postExecution(): Promise<void> {

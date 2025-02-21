@@ -26,18 +26,26 @@ class ListenChannelsProvider implements IListenChannelsProvider {
 }
 
 export type ChannelOptionsExtend = ChannelOptions<{
-    otherOption: string;
+    eXampleExecutionCounter: number;
 }>;
 
 class ChannelOptionsProvider implements IChannelOptionsProvider<ChannelOptionsExtend> {
+    private readonly baseOptions: ChannelOptionsExtend = {
+        prefix: '!',
+        eXampleExecutionCounter: 0,
+    }
+    private readonly changedOptions = new Map<string, ChannelOptionsExtend>();
+
     async getOptions(channelId: string): Promise<ChannelOptionsExtend> {
-        return {
-            prefix: channelId === '87576158' ? '#' : '!',
-            otherOption: 'test',
-        };
+        if(this.changedOptions.has(channelId)) {
+            return this.changedOptions.get(channelId) as ChannelOptionsExtend;
+        }
+        return this.baseOptions;
     }
 
-    async setOptions(channelId: string, options: ChannelOptionsExtend): Promise<void> {}
+    async setOptions(channelId: string, options: ChannelOptionsExtend): Promise<void> {
+        this.changedOptions.set(channelId, options);
+    }
 }
 
 @TwitchBot({
@@ -50,10 +58,6 @@ class ChannelOptionsProvider implements IChannelOptionsProvider<ChannelOptionsEx
     },
     channelOptions: {
         provider: ChannelOptionsProvider,
-        cache: {
-            enabled: true,
-            ttl: 60000,
-        },
     },
     tokenRepository: InMemoryTokenRepository,
     commands: [PingCommand, ExampleCommand],

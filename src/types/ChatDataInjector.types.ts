@@ -1,5 +1,6 @@
 import {ChatMessage, TwitchChatMessage} from "../objects/ChatMessage.object";
 import {ChatterUser, PartialTwitchUser, TwitchUser} from "../objects/TwitchUser.object";
+import { ChannelOptionsProvider } from "../providers/ChannelOptions.provider";
 import ChannelChatMessageEventData from "./EventSub_Events/ChannelChatMessageEventData.types";
 import { Badge } from "./twitch/TwitchUser.types";
 
@@ -15,6 +16,9 @@ export enum ChatDataType {
 
     MESSAGE_DATA = 'MESSAGE_DATA', // Message object (data type: ChatMessage)
     MESSAGE = 'MESSAGE', // Message content (data type: TwitchChatMessage)
+
+    OPTIONS_PROVIDER = 'OPTIONS_PROVIDER', // Channel options provider
+    CHANNEL_OPTIONS = 'CHANNEL_OPTIONS', // Channel options
 }
 
 export type ChatDataTypeMap = {
@@ -29,4 +33,7 @@ export type ChatDataTypeMap = {
 
     [ChatDataType.MESSAGE_DATA]: ChatMessage;
     [ChatDataType.MESSAGE]: TwitchChatMessage;
+
+    [ChatDataType.OPTIONS_PROVIDER]: ChannelOptionsProvider;
+    [ChatDataType.CHANNEL_OPTIONS]: Record<string, any>; // ChannelBaseOptions & ExtendedByUser
 };
