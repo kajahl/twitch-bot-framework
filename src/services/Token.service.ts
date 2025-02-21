@@ -9,7 +9,6 @@ import TokenRepository from "../repositories/Token.repository";
 import { AppToken, UsableAppToken, UsableToken, UsableUserToken, UsableUserTokenWithScopes, UserToken } from "../types/Token.repository.types";
 import AccessTokenRequestBuilder from "../builders/auth/AccessToken.request.builder";
 
-@Service(DINames.TokenService)
 export class TokenService {
     private readonly clientSecret: string;
     private readonly clientId: string;
@@ -18,7 +17,7 @@ export class TokenService {
     constructor(
         @Inject(DINames.ConfigService) readonly config: ConfigService,
         @Inject(DINames.TokenRepository) private readonly tokenRepository: TokenRepository,
-        @Inject(DINames.LoggerFactory) private readonly loggerFactory: LoggerFactory
+        @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('TokenService');
         const options : ITwitchBotConfig = config.getConfig();

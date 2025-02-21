@@ -23,15 +23,12 @@ If you receive HTTP status code 429, use the Ratelimit-Reset header to learn how
 
 */
 
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
-import { RequestPriority, RequestQueueItem, TwitchRatelimitState } from "../types/RateLimiter.types";
+
 import { Logger, LoggerFactory } from "../utils/Logger";
-import TimeCounter from "../utils/TimeCounter";
-import { Inject, Service } from "typedi";
+import { Inject } from "typedi";
 import DINames from "../utils/DI.names";
 import IndividualRateLimiterService from "./IndividualRateLimiter.service";
 
-@Service(DINames.RateLimiterService)
 export default class RateLimiterService {
     private readonly logger: Logger;
 

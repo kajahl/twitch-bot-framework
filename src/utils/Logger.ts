@@ -1,4 +1,4 @@
-import { Inject, Service } from "typedi";
+import Container, { Inject, Service } from "typedi";
 import DINames from "./DI.names";
 import ConfigService from "../services/Config.service";
 
@@ -22,7 +22,6 @@ export enum ANSI_COLORS {
     black = "\x1b[30m"
 };
 
-@Service(DINames.LoggerFactory)
 export class LoggerFactory {
     constructor(
         @Inject(DINames.ConfigService) private readonly configService: ConfigService
@@ -38,15 +37,18 @@ export class Logger {
         private readonly name: string,
         private readonly nameColor: ANSI_COLORS = ANSI_COLORS.cyan,
         private readonly messageColor: ANSI_COLORS = ANSI_COLORS.white,
-        private readonly configService: ConfigService | null = null
+        private configService: ConfigService | null = null
     ) {
         
     }
 
     private canShowLogLevel(type: LogLevel): boolean {
-        const logOptions = this.configService ? this.configService.getConfig().log : null;
-        if (!logOptions) return true;
-        if(logOptions.levels.includes(type)) return true;
+        if(!Container.has(DINames.ConfigService)) return true;
+        this.configService = Container.get(DINames.ConfigService);
+        if(this.configService === null) return true;
+        const config = this.configService.getConfig()
+        if (!config.log) return true;
+        if(config.log.levels.includes(type)) return true;
         return false;
     }
 

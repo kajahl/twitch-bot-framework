@@ -5,7 +5,6 @@ import { Logger, LoggerFactory } from '../utils/Logger';
 import ConfigService from '../services/Config.service';
 import { TListenChannelsProvider } from '../decorators/TwitchBot.decorator';
 
-@Service(DINames.ListenChannelsProvider)
 export default class ListenChannelsProvider implements IListenChannelsProvider {
     private readonly provider: IListenChannelsProvider;
     private readonly logger: Logger;

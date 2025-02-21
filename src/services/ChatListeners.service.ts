@@ -7,7 +7,6 @@ import DINames from '../utils/DI.names';
 import { ChannelOptionsProvider } from '../providers/ChannelOptions.provider';
 import ChatDataInjectorService from './ChatDataInjector.service';
 
-@Service(DINames.ChatListenersService)
 export default class ChatListenersService {
     private static readonly chatListenersContainer = GeneralContainer.getInstance<GeneralFactory, ChatListenerExecution>();
     private static readonly chatListenerRegistry = GeneralRegistry.getInstance<ChatListenerInstance, ChatListenerDecoratorOptions>();

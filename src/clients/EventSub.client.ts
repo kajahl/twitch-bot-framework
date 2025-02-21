@@ -19,14 +19,13 @@ import GetEventSubSubscriptionsRequestConfigBuilder, { GetEventSubSubscriptionsR
 import DeleteEventSubSubscriptionRequestConfigBuilder from '../builders/api/DeleteEventSubSubscription.request.builder';
 import { UsableToken } from '../types/Token.repository.types';
 
-@Service(DINames.EventSubClient)
 export default class EventSubClient {
     private readonly clientId: string;
     private readonly userId: string;
     private readonly logger: Logger;
     private websocketClient: WebsocketClient;
 
-    private constructor(
+    constructor(
         @Inject(DINames.ConfigService) private readonly config: ConfigService,
         @Inject(DINames.TokenService) private readonly tokenService: TokenService,
         @Inject(DINames.ListenChannelsProvider) private readonly listenChannelsProvider: ListenChannelsProvider,
