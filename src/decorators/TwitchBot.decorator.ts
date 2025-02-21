@@ -35,10 +35,6 @@ export interface ITwitchBotConfig<ExtendedChannelOptions extends Record<string, 
     };
     channelOptions: {
         provider: TChannelOptionsProvider<ExtendedChannelOptions>;
-        cache: {
-            enabled: boolean;
-            ttl: number;
-        }
     };
     tokenRepository: TTokenRepositoryProvider;
     commands: (new () => ChatCommandExecution)[];
