@@ -6,7 +6,7 @@ import { ITwitchBotConfig } from "../decorators/TwitchBot.decorator";
 import ConfigService from "./Config.service";
 import DINames from "../utils/DI.names";
 import TokenRepository from "../repositories/Token.repository";
-import { AppToken, UserToken } from "../types/Token.repository.types";
+import { AppToken, UsableAppToken, UsableToken, UsableUserToken, UsableUserTokenWithScopes, UserToken } from "../types/Token.repository.types";
 import AccessTokenRequestBuilder from "../builders/auth/AccessToken.request.builder";
 
 @Service(DINames.TokenService)
@@ -34,12 +34,15 @@ export class TokenService {
     }
 
     private _appTokenRequest : Promise<any> | null = null;
-    public async getAppToken() : Promise<string> {
+    public async getAppToken() : Promise<UsableAppToken> {
         const token = await this.tokenRepository.getAppToken();
         // If token is saved and is not expired: Return token
         if (token !== null && !this.isExpired(token.savedAt, token.expires_in)) {
             this.logger.info(`Successfully retrieved app token from storage`);
-            return token.access_token;
+            return {
+                token: token.access_token,
+                isApp: true
+            };
         }
 
         // else: Generate new token
@@ -65,7 +68,10 @@ export class TokenService {
         await this.tokenRepository.saveAppToken(newToken);
         this._appTokenRequest = null;
 
-        return newToken.access_token;
+        return {
+            token: newToken.access_token,
+            isApp: true
+        };
     }
 
     private _userAccessTokenRequests : { [userId: string]: Promise<any> } = {};
@@ -132,19 +138,28 @@ export class TokenService {
         return userToken
     }
 
-    public async getUserTokenById(userId: string): Promise<string | null> {
+    public async getUserTokenById(userId: string): Promise<UsableUserToken | null> {
         const userToken = await this._getUserToken(userId);
         if(userToken === null) return null;
-        return userToken.access_token
+        return {
+            token: userToken.access_token,
+            isApp: false,
+            userId: userId
+        }
     }
 
-    public async getUserTokenWithScopesById(userId: string, scope: TwtichPermissionScope[]): Promise<string | null> {
+    public async getUserTokenWithScopesById(userId: string, scope: TwtichPermissionScope[] = []): Promise<UsableUserTokenWithScopes | null> {
         const userToken = await this._getUserToken(userId);
         if(userToken === null) return null;
         for(const s of scope) {
             if(!userToken.scope.includes(s)) return null;
         }
-        return userToken.access_token
+        return {
+            token: userToken.access_token,
+            isApp: false,
+            userId: userId,
+            scopes: userToken.scope as TwtichPermissionScope[]
+        }
     }
 
     // public async getUserTokenByNickname(nickname: string): Promise<string | null> {

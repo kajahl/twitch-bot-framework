@@ -1,11 +1,14 @@
 import axios, { AxiosRequestConfig, Method } from 'axios';
 import { Logger } from '../../utils/Logger';
 import qs from 'qs';
+import { UsableToken } from '../../types/Token.repository.types';
 
 // TODO: .env => API_URL = "https://api.twitch.tv/helix/"
 
 export default abstract class BaseRequestBuilder {
     protected config: AxiosRequestConfig;
+    private usedToken: UsableToken | null = null;
+
     abstract correctResponseCodes: number[];
     abstract errorResponseCodes: number[];
     constructor(
@@ -53,6 +56,10 @@ export default abstract class BaseRequestBuilder {
         };
     }
 
+    getUsedToken(): UsableToken | null {
+        return this.usedToken;
+    }
+
     /**
      * Get the user ID related to the token
      * @returns User ID related to the token OR empty string if not found
@@ -85,9 +92,10 @@ export default abstract class BaseRequestBuilder {
      * @param accessToken Access token
      * @returns this
      */
-    setAccessToken(accessToken: string): this {
+    setAccessToken(accessToken: UsableToken): this {
+        this.usedToken = accessToken;
         if (this.config.headers == undefined) throw new Error('Headers are required');
-        this.config.headers.Authorization = `Bearer ${accessToken}`;
+        this.config.headers.Authorization = `Bearer ${accessToken.token}`;
         return this;
     }
 

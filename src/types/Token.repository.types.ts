@@ -18,6 +18,8 @@ Zarządzanie tokenami użytkowników:
 - istnieje również możliwość, że refreshToken / accessToken mimo tego że nie wygasł, to użytkownik de-autoryzował aplikacje - wtedy należy usunąć accessToken jeżeli istnieje oraz refreshToken z repozytorium, aby nie próbować odświeżać tokenu
 */
 
+import TwtichPermissionScope from "../enums/TwitchPermissionScope.enum";
+
 export interface ITokenRepository {
     // App / Client
     getAppToken(): Promise<AppToken | null>;
@@ -46,3 +48,8 @@ export type UserToken = {
     expires_in: number;
     scope: string[];
 } & TokenSaveTimestamp;
+
+export type UsableAppToken = { token: string; isApp: true; userId?: never, scopes?: never };
+export type UsableUserToken = { token: string; isApp: false; userId: string, scopes?: never };
+export type UsableUserTokenWithScopes = { token: string; isApp: false; userId: string, scopes: TwtichPermissionScope[] };
+export type UsableToken = UsableAppToken | UsableUserToken | UsableUserTokenWithScopes;

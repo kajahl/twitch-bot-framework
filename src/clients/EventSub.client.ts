@@ -17,6 +17,7 @@ import ChatListenersService from '../services/ChatListeners.service';
 import CreateEventSubSubscriptionRequestConfigBuilder from '../builders/api/CreateEventSubSubscription.request.builder';
 import GetEventSubSubscriptionsRequestConfigBuilder, { GetEventSubSubscriptionsResponse } from '../builders/api/GetEventSubSubscriptions.request.builder';
 import DeleteEventSubSubscriptionRequestConfigBuilder from '../builders/api/DeleteEventSubSubscription.request.builder';
+import { UsableToken } from '../types/Token.repository.types';
 
 @Service(DINames.EventSubClient)
 export default class EventSubClient {
@@ -120,7 +121,7 @@ export default class EventSubClient {
      * @returns Result {@link CreateSubscriptionResponse}
      * @throws Error if subscription failed
      */
-    private async subscribe<T extends MappedTwitchEventId>(type: T, condition: TwitchEventData<T>['condition'], version: TwitchEventData<T>['version'], token: string) {
+    private async subscribe<T extends MappedTwitchEventId>(type: T, condition: TwitchEventData<T>['condition'], version: TwitchEventData<T>['version'], token: UsableToken) {
         if (!this.weboscketSessionId) throw new Error('Websocket session ID not found');
         const requestConfig = new CreateEventSubSubscriptionRequestConfigBuilder().setClientId(this.clientId).setAccessToken(token).setType(type).setCondition(condition).setVersion(version).setSessionId(this.weboscketSessionId).build();
         const response = await axios.request<CreateSubscriptionResponse>(requestConfig);
@@ -137,9 +138,9 @@ export default class EventSubClient {
         
         // TODO: Handle pagination
 
-        const userTokenObject = await this.tokenService.getUserTokenObjectById(userId);
+        const userTokenObject = await this.tokenService.getUserTokenById(userId);
         if (!userTokenObject) throw new NotFoundError('User token not found');
-        const requestBuilder = new GetEventSubSubscriptionsRequestConfigBuilder().setClientId(this.clientId).setAccessToken(userTokenObject.access_token);
+        const requestBuilder = new GetEventSubSubscriptionsRequestConfigBuilder().setClientId(this.clientId).setAccessToken(userTokenObject);
         if(options.userId !== undefined) requestBuilder.setUserId(options.userId);
         if(options.status !== undefined) requestBuilder.setStatus(options.status);
         if(options.type !== undefined) requestBuilder.setType(options.type);
@@ -161,7 +162,7 @@ export default class EventSubClient {
      * @returns Result {@link DeleteSubscriptionResponse}
      * @throws Error if unsubscription failed
      */
-    private async unsubscribe(id: string, token: string) {
+    private async unsubscribe(id: string, token: UsableToken) {
         const requestConfig = new DeleteEventSubSubscriptionRequestConfigBuilder().setClientId(this.clientId).setAccessToken(token).setId(id).build();
         const response = await axios.request<DeleteSubscriptionResponse>(requestConfig);
         if (response.status !== 204) {
@@ -180,7 +181,7 @@ export default class EventSubClient {
      * //TODO
      */
     async listenChat(channelId: string, asUserId: string = this.userId) {
-        const userTokenObject = await this.tokenService.getUserTokenObjectById(asUserId);
+        const userTokenObject = await this.tokenService.getUserTokenWithScopesById(asUserId);
         if (!userTokenObject) throw new Error('User token not found');
         /*
         Zależnie od scopeów:
@@ -195,13 +196,13 @@ export default class EventSubClient {
             (2 - chyba) user:read:chat + userAccessToken
         ALE najlepiej rozwiązać to tak - użytkownik, który jest botem MUSI mieć scope user:bot i channel:bot
         */
-        if (!userTokenObject.scope.includes(TwtichPermissionScope.UserBot)) {
-            const errorMessage = `User token does not have required scope user:bot (avaliable scopes: ${userTokenObject.scope.join(', ')})`;
+        if (!userTokenObject.scopes.includes(TwtichPermissionScope.UserBot)) {
+            const errorMessage = `User token does not have required scope user:bot (avaliable scopes: ${userTokenObject.scopes.join(', ')})`;
             this.logger.error(errorMessage);
             throw new Error(errorMessage);
         }
-        if (!userTokenObject.scope.includes(TwtichPermissionScope.ChannelBot)) {
-            const errorMessage = `User token does not have required scope channel:bot (avaliable scopes: ${userTokenObject.scope.join(', ')})`;
+        if (!userTokenObject.scopes.includes(TwtichPermissionScope.ChannelBot)) {
+            const errorMessage = `User token does not have required scope channel:bot (avaliable scopes: ${userTokenObject.scopes.join(', ')})`;
             this.logger.error(errorMessage);
             throw new Error(errorMessage);
         }
@@ -213,7 +214,7 @@ export default class EventSubClient {
                 user_id: asUserId,
             },
             1,
-            userTokenObject.access_token
+            userTokenObject
         );
     }
 
@@ -228,9 +229,9 @@ export default class EventSubClient {
         const subscription = data.data.filter((sub) => sub.type == TwitchEventId.ChannelChatMessage).find((sub) => sub.condition.broadcaster_user_id == channelId && sub.condition.user_id == asUserId);
         if (!subscription) throw new NotFoundError('Subscription not found');
 
-        const userTokenObject = await this.tokenService.getUserTokenObjectById(asUserId);
+        const userTokenObject = await this.tokenService.getUserTokenById(asUserId);
         if (!userTokenObject) throw new NotFoundError('User token not found');
 
-        return this.unsubscribe(subscription.id, userTokenObject.access_token);
+        return this.unsubscribe(subscription.id, userTokenObject);
     }
 }

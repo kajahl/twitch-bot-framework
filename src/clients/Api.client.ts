@@ -7,6 +7,7 @@ import GetUsersRequestBuilder, { GetUsersResponse } from '../builders/api/GetUse
 import MakeRequest from '../builders/Make.request';
 import SendChatMessageRequestConfigBuilder, { SendChatMessageResponse } from '../builders/api/SendChatMessage.request.builder';
 import FulfillRequest from '../builders/Fulfill.request';
+import { UsableAppToken, UsableUserToken } from '../types/Token.repository.types';
 
 /*
 
@@ -32,12 +33,12 @@ export default class APIClient {
         this.logger.debug('Initialized');
     }
 
-    private async getAppAccessToken(): Promise<string> {
+    private async getAppAccessToken(): Promise<UsableAppToken> {
         this.logger.debug('Getting app access token');
         return await this.tokenService.getAppToken();
     }
 
-    private async getUserAccessToken(): Promise<string> {
+    private async getUserAccessToken(): Promise<UsableUserToken> {
         this.logger.debug('Getting user access token');
         const token = await this.tokenService.getUserTokenById(this.userId);
         if (token == null) {

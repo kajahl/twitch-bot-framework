@@ -15,6 +15,7 @@ import ChatListenersService from '../services/ChatListeners.service';
 import TwitchUserCache from '../cache/TwitchUser.cache';
 import TwitchUserCacheFetchStrategy from '../cache/fetchers/TwitchUser.cache.fetch.strategy';
 import ChatDataInjectorService from '../services/ChatDataInjector.service';
+import RateLimiterService from '../services/RateLimiter.service';
 
 // Typy
 
@@ -55,6 +56,10 @@ export function TwitchBot(config: ITwitchBotConfig): ClassDecorator {
         Container.set(DINames.UserDefinedListenChannelsProvider, new config.listenChannels.provider());
         Container.set(DINames.ChannelOptionsProvider, new ChannelOptionsProvider(config.channelOptions.provider, Container.get(DINames.ConfigService), Container.get(DINames.LoggerFactory)));
         
+        // RateLimiter
+
+        Container.set(DINames.RateLimiterService, new RateLimiterService(Container.get(DINames.LoggerFactory)));
+
         // Chat
 
         Container.set(DINames.ChatDataInjectorService, new ChatDataInjectorService(Container.get(DINames.LoggerFactory)));
