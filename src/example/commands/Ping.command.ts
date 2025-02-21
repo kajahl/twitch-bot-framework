@@ -1,5 +1,5 @@
 import { ChatCommand } from "../../decorators/ChatCommand.decorator";
-import { Message } from "../../decorators/ChatData.decorators";
+import { Mess } from "../../decorators/ChatData.decorators";
 import { TwitchChatMessage } from "../../objects/ChatMessage.object";
 import { ChatCommandExecution } from '../../types/ChatCommand.types';
 
@@ -11,7 +11,7 @@ import { ChatCommandExecution } from '../../types/ChatCommand.types';
 })
 export default class PingCommand implements ChatCommandExecution {
     async execution(
-        @Message() message: TwitchChatMessage,
+        @Mess() message: TwitchChatMessage,
     ): Promise<void> {
         message.reply(`Pong!`);
     }

@@ -24,7 +24,7 @@ const Sender = CreateChatDataDecorator(ChatDataType.SENDER);
 const BroadcasterData = CreateChatDataDecorator(ChatDataType.BROADCASTER_DATA);
 const Broadcaster = CreateChatDataDecorator(ChatDataType.BROADCASTER);
 const MessageData = CreateChatDataDecorator(ChatDataType.MESSAGE_DATA);
-const Message = CreateChatDataDecorator(ChatDataType.MESSAGE);
+const Mess = CreateChatDataDecorator(ChatDataType.MESSAGE);
 const MessageUser = CreateChatDataDecorator(ChatDataType.MESSAGE_USER);
 
 export { 
@@ -32,5 +32,5 @@ export {
     SenderData, Sender, 
     MessageUser,
     BroadcasterData, Broadcaster,
-    MessageData, Message 
+    MessageData, Mess 
 };
