@@ -10,6 +10,6 @@ export default class CounterListener implements ChatListenerExecution {
 
     async execution(): Promise<void> {
         this.messageCount++;
-        console.log(`Received ${this.messageCount} messages in total`);
+        if(this.messageCount % 100 === 0) console.log(`Received ${this.messageCount} messages in total`);
     }
 }
