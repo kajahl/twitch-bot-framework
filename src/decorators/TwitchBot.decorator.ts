@@ -16,11 +16,12 @@ import TwitchUserCache from '../cache/TwitchUser.cache';
 import TwitchUserCacheFetchStrategy from '../cache/fetchers/TwitchUser.cache.fetch.strategy';
 import ChatDataInjectorService from '../services/ChatDataInjector.service';
 import RateLimiterService from '../services/RateLimiter.service';
+import TwitchBotFramework from '../TwitchBotFramework';
 
 // Typy
 
-export type ListenChannelsProvider = new () => IListenChannels;
-export type TokenRepositoryProvider = new () => ITokenRepository;
+export type TListenChannelsProvider = new () => IListenChannels;
+export type TTokenRepositoryProvider = new () => ITokenRepository;
 export type TChannelOptionsProvider<T extends Record<string, any>> = new () => IChannelOptionsProvider<T>;
 
 export interface ITwitchBotConfig<ExtendedChannelOptions extends Record<string, any> = Record<string, any>> {
@@ -28,7 +29,7 @@ export interface ITwitchBotConfig<ExtendedChannelOptions extends Record<string, 
     clientId: string;
     clientSecret: string;
     listenChannels: {
-        provider: ListenChannelsProvider;
+        provider: TListenChannelsProvider;
         refreshInterval: number;
     };
     channelOptions: {
@@ -38,7 +39,7 @@ export interface ITwitchBotConfig<ExtendedChannelOptions extends Record<string, 
             ttl: number;
         }
     };
-    tokenRepository: TokenRepositoryProvider;
+    tokenRepository: TTokenRepositoryProvider;
     commands: (new () => ChatCommandExecution)[];
     listeners: (new () => ChatListenerExecution)[];
     log: {
@@ -71,6 +72,13 @@ export function TwitchBot(config: ITwitchBotConfig): ClassDecorator {
         Container.set(DINames.TwitchUserCacheFetchStrategy, new TwitchUserCacheFetchStrategy(Container.get(DINames.APIClient)));
         Container.set(DINames.TwitchUserCache, new TwitchUserCache(Container.get(DINames.TwitchUserCacheFetchStrategy), Container.get(DINames.LoggerFactory)))
 
+        Container.set(DINames.TwitchBotFramework, new TwitchBotFramework(
+            Container.get(DINames.ConfigService),
+            Container.get(DINames.TokenRepository), 
+            Container.get(DINames.EventSubClient),
+            Container.get(DINames.APIClient),
+            Container.get(DINames.LoggerFactory)
+        ));
         Container.get(DINames.TwitchBotFramework);
     };
 }

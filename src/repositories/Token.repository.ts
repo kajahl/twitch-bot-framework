@@ -1,10 +1,10 @@
-import { TokenRepositoryProvider } from "../decorators/TwitchBot.decorator";
+import { TTokenRepositoryProvider } from "../decorators/TwitchBot.decorator";
 import { AppToken, ITokenRepository, UserToken } from "../types/Token.repository.types";
 
 export default class TokenRepository implements ITokenRepository {
     private tokenRepository: ITokenRepository;
     constructor(
-        userDefinedTokenRepository: TokenRepositoryProvider
+        userDefinedTokenRepository: TTokenRepositoryProvider
     ) {
         this.tokenRepository = new userDefinedTokenRepository();
     }
