@@ -1,5 +1,8 @@
 import { ChatCommand } from "../../decorators/ChatCommand.decorator";
-import { ChatCommandExecution, ChatCommandExecutionData, ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPostExecution, ChatCommandPreExecution } from "../../types/ChatCommand.types";
+import { MessageUser, Raw } from "../../decorators/ChatData.decorators";
+import { ChatterUser } from "../../objects/TwitchUser.object";
+import { ChatCommandExecution, ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPostExecution, ChatCommandPreExecution } from "../../types/ChatCommand.types";
+import ChannelChatMessageEventData from "../../types/EventSub_Events/ChannelChatMessageEventData.types";
 
 @ChatCommand({ 
     name: 'example',
@@ -7,20 +10,20 @@ import { ChatCommandExecution, ChatCommandExecutionData, ChatCommandExecutionGua
     ignoreCase: false
 })
 export default class ExampleCommand implements ChatCommandExecutionGuard, ChatCommandPreExecution, ChatCommandExecution, ChatCommandPostExecution {
-    async guard(data: ChatCommandExecutionData): Promise<ChatCommandExecutionGuardAvaliableResults> {
-        if(data.event.badges.some(predicate => predicate.set_id === 'moderator')) return { canAccess: true };
-        return { canAccess: false, message: "You are not a moderator" };
+    async guard(@MessageUser() user: ChatterUser): Promise<ChatCommandExecutionGuardAvaliableResults> {
+        if(user.isBroadcaster() || user.isModerator() || user.isVIP()) return { canAccess: true };
+        return { canAccess: false, message: "You must be a broadcaster, moderator or VIP to use this command." };
     }
 
-    async preExecution(data: ChatCommandExecutionData): Promise<void> {
+    async preExecution(): Promise<void> {
         console.log('Pre-execution logic');
     }
 
-    async execution(data: ChatCommandExecutionData): Promise<void> {
+    async execution(): Promise<void> {
         console.log('Execution logic');
     }
 
-    async postExecution(data: ChatCommandExecutionData): Promise<void> {
+    async postExecution(): Promise<void> {
         console.log('Post-execution logic');
     }
 }

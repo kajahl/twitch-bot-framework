@@ -8,7 +8,7 @@ import { ChatListenerExecution } from "../../types/ChatListener.types";
 export default class CounterListener implements ChatListenerExecution {
     private messageCount: number = 0;
 
-    async execution(data: any): Promise<void> {
+    async execution(): Promise<void> {
         this.messageCount++;
         console.log(`Received ${this.messageCount} messages in total`);
     }

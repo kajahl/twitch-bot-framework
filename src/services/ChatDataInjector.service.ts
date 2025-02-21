@@ -3,7 +3,7 @@ import DINames from "../utils/DI.names";
 import { Logger, LoggerFactory } from "../utils/Logger";
 import { ChatDataType, ChatDataTypeMap } from "../types/ChatDataInjector.types";
 import ChannelChatMessageEventData from "../types/EventSub_Events/ChannelChatMessageEventData.types";
-import TwitchUser from "../objects/TwitchUser.object";
+import {ChatterUser, PartialTwitchUser, TwitchUser} from "../objects/TwitchUser.object";
 import {ChatMessage, TwitchChatMessage} from "../objects/ChatMessage.object";
 
 export default class ChatDataInjectorService {
@@ -22,7 +22,18 @@ export default class ChatDataInjectorService {
     ): ChatDataTypeMap[T] {
         const dataMaps: { [key in ChatDataType]: (data: ChannelChatMessageEventData) => any } = {
             [ChatDataType.RAW]: (data: ChannelChatMessageEventData) => data,
+            [ChatDataType.MESSAGE_USER]: (data: ChannelChatMessageEventData) => new ChatterUser(data),
+            [ChatDataType.SENDER_DATA]: (data: ChannelChatMessageEventData) => new PartialTwitchUser({
+                id: data.chatter_user_id,
+                login: data.chatter_user_login,
+                name: data.chatter_user_name
+            }),
             [ChatDataType.SENDER]: (data: ChannelChatMessageEventData) => new TwitchUser(data.chatter_user_id),
+            [ChatDataType.BROADCASTER_DATA]: (data: ChannelChatMessageEventData) => new PartialTwitchUser({
+                id: data.broadcaster_user_id,
+                login: data.broadcaster_user_login,
+                name: data.broadcaster_user_name
+            }),
             [ChatDataType.BROADCASTER]: (data: ChannelChatMessageEventData) => new TwitchUser(data.broadcaster_user_id),
             [ChatDataType.MESSAGE_DATA]: (data: ChannelChatMessageEventData) => new ChatMessage(data),
             [ChatDataType.MESSAGE]: (data: ChannelChatMessageEventData) => new TwitchChatMessage(data)

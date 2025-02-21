@@ -113,7 +113,7 @@ export default class ChatCommandsService {
         try {
             if (methods.includes('guard')) {
                 const args = await this.chatDataInjector.injectParameters(instance, 'guard', data);
-                const guardResult = await instance.guard({ event: data }, ...args);
+                const guardResult = await instance.guard(...args);
                 if (!guardResult.canAccess) {
                     this.logger.log(`Guard failed for command ${command.entry.options.name} for user ${data.chatter_user_login} in channel ${data.broadcaster_user_login}`);
                     return;
@@ -122,18 +122,18 @@ export default class ChatCommandsService {
 
             if (methods.includes('preExecution')) {
                 const args = await this.chatDataInjector.injectParameters(instance, 'preExecution', data);
-                await instance.preExecution({ event: data }, ...args);
+                await instance.preExecution(...args);
             }
 
             // Brackets for args isolation
             {
                 const args = await this.chatDataInjector.injectParameters(instance, 'execution', data);
-                await instance.execution({ event: data }, ...args);
+                await instance.execution(...args);
             }
 
             if (methods.includes('postExecution')) {
                 const args = await this.chatDataInjector.injectParameters(instance, 'postExecution', data);
-                await instance.postExecution({ event: data }, ...args);
+                await instance.postExecution(...args);
             }
         } catch (error) {
             this.logger.error(`Error while executing command ${command.entry.options.name}: ${error}`);

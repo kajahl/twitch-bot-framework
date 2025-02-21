@@ -13,8 +13,7 @@ import {
     ChatCommandExecutionGuardAvaliableResults,
     ChatCommandPreExecution,
     ChatCommandExecution, 
-    ChatCommandPostExecution, 
-    ChatCommandExecutionData,
+    ChatCommandPostExecution
 } from './src/types/ChatCommand.types';
 
 // Listener interfaces
@@ -45,7 +44,7 @@ export default TwitchBotFramework;
 export {
     ITokenRepository,
     InMemoryTokenRepository,
-    ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPreExecution, ChatCommandExecution, ChatCommandPostExecution, ChatCommandExecutionData,
+    ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPreExecution, ChatCommandExecution, ChatCommandPostExecution,
     ChatListenerExecution, ChatListenerExecutionData,
     ChatCommandDecoratorOptions, ChatListenerDecoratorOptions, ChatCommand, ChatListener,
     PingCommand, ExampleCommand,

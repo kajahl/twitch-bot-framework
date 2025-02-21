@@ -19,9 +19,18 @@ export function extractDataAccess(type: ChatDataType, target: any, propertyKey: 
 }
 
 const Raw = CreateChatDataDecorator(ChatDataType.RAW);
+const SenderData = CreateChatDataDecorator(ChatDataType.SENDER_DATA);
 const Sender = CreateChatDataDecorator(ChatDataType.SENDER);
+const BroadcasterData = CreateChatDataDecorator(ChatDataType.BROADCASTER_DATA);
 const Broadcaster = CreateChatDataDecorator(ChatDataType.BROADCASTER);
 const MessageData = CreateChatDataDecorator(ChatDataType.MESSAGE_DATA);
 const Message = CreateChatDataDecorator(ChatDataType.MESSAGE);
+const MessageUser = CreateChatDataDecorator(ChatDataType.MESSAGE_USER);
 
-export { Raw, Sender, Broadcaster, MessageData, Message };
+export { 
+    Raw, 
+    SenderData, Sender, 
+    MessageUser,
+    BroadcasterData, Broadcaster,
+    MessageData, Message 
+};

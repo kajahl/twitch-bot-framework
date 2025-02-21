@@ -3,7 +3,7 @@ import { Cheer, IChatMessage, MessageFragment, MessageFramgentType, Reply } from
 import DINames from "../utils/DI.names";
 import APIClient from "../clients/Api.client";
 import ChannelChatMessageEventData from "../types/EventSub_Events/ChannelChatMessageEventData.types";
-import TwitchUser from "./TwitchUser.object";
+import {TwitchUser} from "./TwitchUser.object";
 
 export class ChatMessage {
     constructor(protected readonly data: IChatMessage) {}

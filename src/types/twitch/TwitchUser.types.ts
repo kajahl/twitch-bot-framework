@@ -3,7 +3,7 @@ import { IPrefixObject } from "../Utils.types";
 export type IPartialTwitchUser = {
     id: string;
     login: string;
-    display_name: string;
+    name: string;
 }
 
 export type IPrefixUser<Prefix extends string> = IPrefixObject<Prefix, IPartialTwitchUser>;
@@ -15,7 +15,8 @@ export type IChatterUser = IPrefixUser<'chatter_user'> & {
 
 export type IBroadcasterUser = IPrefixUser<'broadcaster_user'>;
 
-export type ITwitchUser = IPartialTwitchUser & {
+export type ITwitchUser = Omit<IPartialTwitchUser, 'name'> & {
+    display_name: string;
     type: TwitchUserType;
     broadcaster_type: TwitchUserBroadcasterType;
     description: string;
@@ -44,8 +45,10 @@ export type Badge = {
 };
 
 export enum BadgeSetId {
+    Broadcaster = 'broadcaster',
     Moderator = 'moderator',
     Subscriber = 'subscriber',
-    SubGifter = 'sub-gifter',
-    // TODO: Implement more badge set IDs
+    Vip = 'vip',
+    SubGifter = 'sub-gifter', // { set_id: 'sub-gifter', id: '5', info: '' }
+    BitsGifter = 'bits' // [ { set_id: 'bits', id: '100', info: '' } ]
 }

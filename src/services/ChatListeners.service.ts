@@ -80,7 +80,7 @@ export default class ChatListenersService {
 
             try {
                 const args = await this.chatDataInjector.injectParameters(instance, 'execution', data);
-                instance.execution({ event: data }, ...args);
+                instance.execution(...args);
             } catch (error) {
                 this.logger.error(`Error while executing listener ${listener.options.name}: ${error}`);
             }
