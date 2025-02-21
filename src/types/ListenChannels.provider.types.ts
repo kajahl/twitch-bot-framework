@@ -1,4 +1,4 @@
-export interface IListenChannels {
+export interface IListenChannelsProvider {
     getChannelIds(): Promise<string[]> | string[];
 }
 

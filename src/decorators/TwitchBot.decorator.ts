@@ -7,7 +7,7 @@ import DINames from '../utils/DI.names';
 import { LogLevel } from '../utils/Logger';
 import TokenRepository from '../repositories/Token.repository';
 import { ITokenRepository } from '../types/Token.repository.types';
-import { IListenChannels } from '../types/ListenChannels.provider.types';
+import { IListenChannelsProvider } from '../types/ListenChannels.provider.types';
 import { IChannelOptionsProvider } from '../types/ChannelOptions.provider';
 import { ChannelOptionsProvider } from '../providers/ChannelOptions.provider';
 import ChatCommandsService from '../services/ChatCommands.service';
@@ -17,10 +17,11 @@ import TwitchUserCacheFetchStrategy from '../cache/fetchers/TwitchUser.cache.fet
 import ChatDataInjectorService from '../services/ChatDataInjector.service';
 import RateLimiterService from '../services/RateLimiter.service';
 import TwitchBotFramework from '../TwitchBotFramework';
+import ListenChannelsProvider from '../providers/ListenChannels.provider';
 
 // Typy
 
-export type TListenChannelsProvider = new () => IListenChannels;
+export type TListenChannelsProvider = new () => IListenChannelsProvider;
 export type TTokenRepositoryProvider = new () => ITokenRepository;
 export type TChannelOptionsProvider<T extends Record<string, any>> = new () => IChannelOptionsProvider<T>;
 
@@ -54,7 +55,7 @@ export function TwitchBot(config: ITwitchBotConfig): ClassDecorator {
 
         Container.set(DINames.ConfigService, new ConfigService(config));
         Container.set(DINames.TokenRepository, new TokenRepository(config.tokenRepository));
-        Container.set(DINames.UserDefinedListenChannelsProvider, new config.listenChannels.provider());
+        Container.set(DINames.ListenChannelsProvider, new ListenChannelsProvider(config.listenChannels.provider, Container.get(DINames.ConfigService), Container.get(DINames.LoggerFactory)));
         Container.set(DINames.ChannelOptionsProvider, new ChannelOptionsProvider(config.channelOptions.provider, Container.get(DINames.ConfigService), Container.get(DINames.LoggerFactory)));
         
         // RateLimiter

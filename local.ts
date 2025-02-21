@@ -1,10 +1,14 @@
-import { InMemoryTokenRepository, PingCommand, ExampleCommand, CounterListener, ShowMessageListener } from './index';
-
 import dotenv from 'dotenv';
 import { TwitchBot } from './src/decorators/TwitchBot.decorator';
 import { LogLevel } from './src/utils/Logger';
-import { IListenChannels } from './src/types/ListenChannels.provider.types';
+import { IListenChannelsProvider } from './src/types/ListenChannels.provider.types';
 import { IChannelOptionsProvider, ChannelOptions } from './src/types/ChannelOptions.provider';
+import InMemoryTokenRepository from './src/example/repositories/InMemoryToken.repository';
+import PingCommand from './src/example/commands/Ping.command';
+import ExampleCommand from './src/example/commands/Example.command';
+import CounterListener from './src/example/listeners/Counter.listener';
+import ShowMessageListener from './src/example/listeners/ShowMessage.listener';
+
 dotenv.config();
 
 const clientId = process.env.CLIENT_ID as string;
@@ -12,11 +16,12 @@ const clientSecret = process.env.CLIENT_SECRET as string;
 const userId = process.env.USER_ID as string;
 const userRefreshToken = process.env.USER_REFRESH_TOKEN as string;
 
-class ListenChannelsProvider implements IListenChannels {
+class ListenChannelsProvider implements IListenChannelsProvider {
     private i = 0;
-    private channels: string[] = ['87576158', '82197170'];
+    private channels: string[] = ['87576158', '474118438', '66250925', '82197170', '58462752'];
     async getChannelIds(): Promise<string[]> {
-        return this.i++ % 2 == 0 ? this.channels : [];
+        // return this.i++ % 2 == 0 ? this.channels : [];
+        return this.channels;
     }
 }
 
@@ -54,7 +59,7 @@ class ChannelOptionsProvider implements IChannelOptionsProvider<ChannelOptionsEx
     commands: [PingCommand, ExampleCommand],
     listeners: [CounterListener, ShowMessageListener],
     log: {
-        levels: [LogLevel.INFO, LogLevel.NORMAL, LogLevel.ERROR, LogLevel.WARN, LogLevel.DEBUG],
+        levels: [LogLevel.INFO, LogLevel.NORMAL, LogLevel.ERROR, LogLevel.WARN] //, LogLevel.DEBUG],
     },
 })
 class Bot {}

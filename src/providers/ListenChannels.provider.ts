@@ -1,20 +1,23 @@
 import { Inject, Service } from 'typedi';
-import { IListenChannels, ListenChannelsCallback, ListenChannelSubscriptionResult } from '../types/ListenChannels.provider.types';
+import { IListenChannelsProvider, ListenChannelsCallback, ListenChannelSubscriptionResult } from '../types/ListenChannels.provider.types';
 import DINames from '../utils/DI.names';
 import { Logger, LoggerFactory } from '../utils/Logger';
 import ConfigService from '../services/Config.service';
+import { TListenChannelsProvider } from '../decorators/TwitchBot.decorator';
 
 @Service(DINames.ListenChannelsProvider)
-export default class ListenChannelsProvider implements IListenChannels {
+export default class ListenChannelsProvider implements IListenChannelsProvider {
+    private readonly provider: IListenChannelsProvider;
     private readonly logger: Logger;
     private _lastChannelIds: string[] = [];
 
     constructor(
+        private readonly channelProvider: TListenChannelsProvider,
         @Inject(DINames.ConfigService) private readonly config: ConfigService,
-        @Inject(DINames.UserDefinedListenChannelsProvider) private readonly listenChannels: IListenChannels,
         @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
     ) {
         this.logger = loggerFactory.createLogger('ListenChannels');
+        this.provider = new this.channelProvider();
         this.setupRefreshInterval();
         this.setupApiCheckInterval();
         this.logger.debug('Initialized');
@@ -49,7 +52,7 @@ export default class ListenChannelsProvider implements IListenChannels {
      * @returns List of channel ids
      */
     async getChannelIds(): Promise<string[]> {
-        const channels = await this.listenChannels.getChannelIds();
+        const channels = await this.provider.getChannelIds();
         const botUserId = this.config.getConfig().userId;
         if(!channels.includes(botUserId)) 
             channels.push(botUserId);
