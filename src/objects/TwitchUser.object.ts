@@ -1,7 +1,7 @@
 import Container from 'typedi';
 import TwitchUserCache from '../cache/TwitchUser.cache';
 import DINames from '../utils/DI.names';
-import { ITwitchUser, IPartialTwitchUser, IChatterUser, Badge, BadgeSetId } from '../types/twitch/TwitchUser.types';
+import { ITwitchUser, IPartialTwitchUser, IChatterUser, Badge, BadgeSetId, TwitchUserType, TwitchUserBroadcasterType } from '../types/twitch/TwitchUser.types';
 
 export class PartialTwitchUser {
     constructor(private readonly data: IPartialTwitchUser) {}
@@ -44,12 +44,12 @@ export class TwitchUser {
         return user.display_name;
     }
 
-    async getType(): Promise<string> {
+    async getType(): Promise<TwitchUserType> {
         const user = await this.getCachedUser();
         return user.type;
     }
 
-    async getBroadcasterType(): Promise<string> {
+    async getBroadcasterType(): Promise<TwitchUserBroadcasterType> {
         const user = await this.getCachedUser();
         return user.broadcaster_type;
     }
