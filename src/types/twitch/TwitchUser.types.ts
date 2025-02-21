@@ -22,7 +22,7 @@ export type ITwitchUser = Omit<IPartialTwitchUser, 'name'> & {
     description: string;
     profile_image_url: string;
     offline_image_url: string;
-    email: string;
+    email?: string;
 };
 
 export enum TwitchUserType {
