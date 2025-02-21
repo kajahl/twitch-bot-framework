@@ -19,15 +19,69 @@ export class PartialTwitchUser {
     }
 }
 
-export class ChatterUser {
-    constructor(private readonly data: IChatterUser) {}
+export class TwitchUser {
+    private readonly cache: TwitchUserCache = Container.get(DINames.TwitchUserCache);
+
+    constructor(private readonly id: string) {}
+
+    private async getCachedUser(): Promise<ITwitchUser> {
+        const user = await this.cache.get(this.id);
+        if(user == null) throw new Error('Cannot obtain user data. Check console for more information.');
+        return user;
+    }
+
+    getId(): string {
+        return this.id;
+    }
+
+    async getLogin(): Promise<string> {
+        const user = await this.getCachedUser();
+        return user.login;
+    }
+
+    async getDisplayName(): Promise<string> {
+        const user = await this.getCachedUser();
+        return user.display_name;
+    }
+
+    async getType(): Promise<string> {
+        const user = await this.getCachedUser();
+        return user.type;
+    }
+
+    async getBroadcasterType(): Promise<string> {
+        const user = await this.getCachedUser();
+        return user.broadcaster_type;
+    }
+
+    async getDescription(): Promise<string> {
+        const user = await this.getCachedUser();
+        return user.description;
+    }
+
+    async getProfileImageUrl(): Promise<string> {
+        const user = await this.getCachedUser();
+        return user.profile_image_url;
+    }
+
+    async getOfflineImageUrl(): Promise<string> {
+        const user = await this.getCachedUser();
+        return user.offline_image_url;
+    }
+
+    async getEmail(): Promise<string | null> {
+        const user = await this.getCachedUser();
+        return user.email ? user.email : null;
+    }
+}
+
+export class ChatterUser extends TwitchUser {
+    constructor(private readonly data: IChatterUser) {
+        super(data.chatter_user_id);
+    }
 
     getId(): string {
         return this.data.chatter_user_id;
-    }
-
-    getLogin(): string {
-        return this.data.chatter_user_login;
     }
 
     getUsername(): string {
@@ -105,59 +159,5 @@ export class ChatterUser {
         if (badge == null) return 0;
         const subs = parseInt(badge.set_id);
         return isNaN(subs) ? 0 : subs;
-    }
-}
-
-export class TwitchUser {
-    private readonly cache: TwitchUserCache = Container.get(DINames.TwitchUserCache);
-
-    constructor(private readonly id: string) {}
-
-    private async getCachedUser(): Promise<ITwitchUser | null> {
-        return await this.cache.get(this.id);
-    }
-
-    getId(): string {
-        return this.id;
-    }
-
-    async getLogin(): Promise<string | null> {
-        const user = await this.getCachedUser();
-        return user ? user.login : null;
-    }
-
-    async getDisplayName(): Promise<string | null> {
-        const user = await this.getCachedUser();
-        return user ? user.display_name : null;
-    }
-
-    async getType(): Promise<string | null> {
-        const user = await this.getCachedUser();
-        return user ? user.type : null;
-    }
-
-    async getBroadcasterType(): Promise<string | null> {
-        const user = await this.getCachedUser();
-        return user ? user.broadcaster_type : null;
-    }
-
-    async getDescription(): Promise<string | null> {
-        const user = await this.getCachedUser();
-        return user ? user.description : null;
-    }
-
-    async getProfileImageUrl(): Promise<string | null> {
-        const user = await this.getCachedUser();
-        return user ? user.profile_image_url : null;
-    }
-
-    async getOfflineImageUrl(): Promise<string | null> {
-        const user = await this.getCachedUser();
-        return user ? user.offline_image_url : null;
-    }
-
-    async getEmail(): Promise<string | null> {
-        const user = await this.getCachedUser();
-        return user ? user.email : null;
     }
 }
