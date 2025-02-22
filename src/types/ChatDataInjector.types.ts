@@ -1,3 +1,4 @@
+import APIClient from "../clients/Api.client";
 import {ChatMessage, TwitchChatMessage} from "../objects/ChatMessage.object";
 import {ChatterUser, PartialTwitchUser, TwitchUser} from "../objects/TwitchUser.object";
 import { ChannelOptionsProvider } from "../providers/ChannelOptions.provider";
@@ -19,6 +20,8 @@ export enum ChatDataType {
 
     OPTIONS_PROVIDER = 'OPTIONS_PROVIDER', // Channel options provider
     CHANNEL_OPTIONS = 'CHANNEL_OPTIONS', // Channel options
+
+    API_CLIENT = 'API_CLIENT', // Twitch API client
 }
 
 export type ChatDataTypeMap = {
@@ -36,4 +39,6 @@ export type ChatDataTypeMap = {
 
     [ChatDataType.OPTIONS_PROVIDER]: ChannelOptionsProvider;
     [ChatDataType.CHANNEL_OPTIONS]: Record<string, any>; // ChannelBaseOptions & ExtendedByUser
+
+    [ChatDataType.API_CLIENT]: APIClient;
 };

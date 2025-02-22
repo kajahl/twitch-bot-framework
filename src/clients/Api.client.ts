@@ -70,7 +70,7 @@ export default class APIClient {
      * @param message Message to send
      * @param replyToMessageId ID of the message to reply to (optional)
      */
-    async sendMessage(channelId: string, message: string, replyToMessageId: string): Promise<void> {
+    async sendMessage(channelId: string, message: string, replyToMessageId?: string): Promise<void> {
         // App access token can be used when: 
         // - The broadcaster (channelId) must have authorized the app with the channel:bot scope or the sender must be a moderator in the broadcaster's channel.
         //      (1. Auth APP with channel:bot scope) // (2. BotUser must be a moderator in the broadcaster's channel)

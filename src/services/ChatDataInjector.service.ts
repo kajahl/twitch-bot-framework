@@ -42,7 +42,8 @@ export default class ChatDataInjectorService {
             [ChatDataType.CHANNEL_OPTIONS]: async (data: ChannelChatMessageEventData) => {
                 const provider = Container.get(DINames.ChannelOptionsProvider) as ChannelOptionsProvider;
                 return await provider.getChannelOptions(data.broadcaster_user_id);
-            }
+            },
+            [ChatDataType.API_CLIENT]: (data: ChannelChatMessageEventData) => Container.get(DINames.APIClient),
         };
 
         const mappedData = await dataMaps[type](data);

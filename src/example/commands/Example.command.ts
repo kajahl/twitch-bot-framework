@@ -1,10 +1,11 @@
 import { ChatCommand } from "../../decorators/ChatCommand.decorator";
-import { BroadcasterData, ChannelOptions, Mess, MessageUser, OptionsProvider, Raw } from "../../decorators/ChatData.decorators";
+import { API, BroadcasterData, ChannelOptions, Mess, MessageUser, OptionsProvider, Raw } from "../../decorators/ChatData.decorators";
 import { ChatterUser, PartialTwitchUser } from "../../objects/TwitchUser.object";
 import { ChannelOptionsProvider } from "../../providers/ChannelOptions.provider";
 import { ChatCommandExecution, ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPostExecution, ChatCommandPreExecution } from "../../types/ChatCommand.types";
 import { ChannelOptionsExtend } from "../../../local";
 import { TwitchChatMessage } from "../../objects/ChatMessage.object";
+import APIClient from "../../clients/Api.client";
 
 
 @ChatCommand({ 
@@ -30,14 +31,19 @@ export default class ExampleCommand implements ChatCommandExecutionGuard, ChatCo
     ): Promise<void> {
         console.log('Execution logic');
         await message.reply(`Example command executed ${options.eXampleExecutionCounter} times.`);
-        console.log(options);
+        if(!options.eXampleExecutionCounter) options.eXampleExecutionCounter = 0;
         provider.setChannelOptions(broadcasterData.getId(), {
             ...options,
             eXampleExecutionCounter: options.eXampleExecutionCounter + 1
         })
     }
 
-    async postExecution(): Promise<void> {
-        console.log('Post-execution logic');
-    }
+    async postExecution(
+            @API() api: APIClient,
+            @BroadcasterData() broadcasterData: PartialTwitchUser
+        ): Promise<void> {
+            console.log('Post-execution logic');
+            const botUserId = api.config.getConfig().userId;
+            await api.sendMessage(botUserId, `eXample command executed @ #${broadcasterData.getLogin()}`);
+        }
 }
