@@ -1,26 +1,30 @@
 import axios from "axios";
-import AccessTokenRequestConfigBuilder from "../builders/tokens/AccessTokenRequestConfig.builder";
-import { AppToken, TokenRepository, UserToken } from "../storage/repository/Token.repository";
-import DataStorage from "../storage/runtime/Data.storage";
-import Logger from "../utils/Logger";
+import { Logger, LoggerFactory } from "../utils/Logger";
 import TwtichPermissionScope from "../enums/TwitchPermissionScope.enum";
-import UserCacheManager from "../cache/managers/UserCache.manager";
-
-const logger = new Logger('TokenService');
+import { Inject, Service } from "typedi";
+import { ITwitchBotConfig } from "../decorators/TwitchBot.decorator";
+import ConfigService from "./Config.service";
+import DINames from "../utils/DI.names";
+import TokenRepository from "../repositories/Token.repository";
+import { AppToken, UsableAppToken, UsableToken, UsableUserToken, UsableUserTokenWithScopes, UserToken } from "../types/Token.repository.types";
+import AccessTokenRequestBuilder from "../builders/auth/AccessToken.request.builder";
 
 export class TokenService {
-    private static instance: TokenService;
-    public static init(tokenRepository: TokenRepository): TokenService {
-        TokenService.instance = new TokenService(tokenRepository);
-        return TokenService.instance;
-    }
-    public static getInstance(): TokenService {
-        return TokenService.instance;
-    }
+    private readonly clientSecret: string;
+    private readonly clientId: string;
+    private readonly logger: Logger;
 
-    private constructor(
-        private tokenRepository: TokenRepository
-    ) {}
+    constructor(
+        @Inject(DINames.ConfigService) readonly config: ConfigService,
+        @Inject(DINames.TokenRepository) private readonly tokenRepository: TokenRepository,
+        @Inject(DINames.LoggerFactory) loggerFactory: LoggerFactory
+    ) {
+        this.logger = loggerFactory.createLogger('TokenService');
+        const options : ITwitchBotConfig = config.getConfig();
+        this.clientId = options.clientId;
+        this.clientSecret = options.clientSecret;
+        this.logger.debug(`Initialized`);
+    }
 
     private isExpired(timestamp: number, expiresIn: number): boolean {
         const now = Date.now();
@@ -29,20 +33,22 @@ export class TokenService {
     }
 
     private _appTokenRequest : Promise<any> | null = null;
-    public async getAppToken() : Promise<string> {
+    public async getAppToken() : Promise<UsableAppToken> {
         const token = await this.tokenRepository.getAppToken();
         // If token is saved and is not expired: Return token
         if (token !== null && !this.isExpired(token.savedAt, token.expires_in)) {
-            logger.log(`Successfully retrieved app token from storage`);
-            return token.access_token;
+            this.logger.info(`Successfully retrieved app token from storage`);
+            return {
+                token: token.access_token,
+                isApp: true
+            };
         }
 
         // else: Generate new token
-        logger.log(`AppToken is expired or not saved. Requesting new app access token...`);
-        const data = DataStorage.getInstance();
-        const accessTokenRequestConfig = new AccessTokenRequestConfigBuilder()
-            .setClientId(data.clientId.get() as string)
-            .setClientSecret(data.clientSecret.get() as string)
+        this.logger.log(`AppToken is expired or not saved. Requesting new app access token...`);
+        const accessTokenRequestConfig = new AccessTokenRequestBuilder()
+            .setClientId(this.clientId)
+            .setClientSecret(this.clientSecret)
             .forClient()
             .build();
 
@@ -51,7 +57,7 @@ export class TokenService {
        
         if(response.status !== 200) throw new Error('Failed to get app token');
         
-        logger.log(`Successfully retrieved app token from Twitch API: ${response.data.access_token}`);
+        this.logger.info(`Successfully retrieved app token from Twitch API: ${this.logger.censor(response.data.access_token)}`);
         const newToken: AppToken = {
             access_token: response.data.access_token,
             expires_in: response.data.expires_in,
@@ -61,7 +67,10 @@ export class TokenService {
         await this.tokenRepository.saveAppToken(newToken);
         this._appTokenRequest = null;
 
-        return newToken.access_token;
+        return {
+            token: newToken.access_token,
+            isApp: true
+        };
     }
 
     private _userAccessTokenRequests : { [userId: string]: Promise<any> } = {};
@@ -70,42 +79,44 @@ export class TokenService {
 
         // If token is saved and is not expired: Return token
         if (token !== null && !this.isExpired(token.savedAt, token.expires_in)) {
-            logger.log(`Successfully retrieved access token for user id=${userId} from storage`);
+            this.logger.info(`Successfully retrieved access token for user id=${userId} from storage`);
             return token;
         }
 
         // else: Check if refresh token is saved
-        logger.log(`UserAccessToken for user=${userId} is expired or not saved. Checking if refresh token is saved...`);
+        this.logger.warn(`UserAccessToken for user=${userId} is expired or not saved. Checking if refresh token is saved...`);
         this.tokenRepository.removeUserAccessToken(userId);
         const refreshToken = await this.tokenRepository.getUserRefreshToken(userId);
 
         // If refresh token is not saved: Return null
         if (refreshToken === null) {
-            logger.log(`No refresh token found for user (${userId})`);
+            this.logger.info(`No refresh token found for user (${userId})`);
             return null;
         }
 
-        // else: Generate new token
-        logger.log(`Found refresh token for user id=${userId}. Requesting new access token...`);
-        const data = DataStorage.getInstance();
-        const accessTokenRequestConfig = new AccessTokenRequestConfigBuilder()
-            .setClientId(data.clientId.get() as string)
-            .setClientSecret(data.clientSecret.get() as string)
-            .forUser(refreshToken)
-            .build();
-
-        this._userAccessTokenRequests[userId] = this._userAccessTokenRequests[userId] ?? axios.request(accessTokenRequestConfig);
+        // else: Generate new token // Return existing request
+        if(this._userAccessTokenRequests[userId] == undefined) {
+            this.logger.info(`Found refresh token for user id=${userId}. Requesting new access token...`);
+            const accessTokenRequestConfig = new AccessTokenRequestBuilder()
+                .setClientId(this.clientId)
+                .setClientSecret(this.clientSecret)
+                .forUser(refreshToken)
+                .build();
+            this._userAccessTokenRequests[userId] = axios.request(accessTokenRequestConfig);
+        } else {
+            this.logger.debug(`Found existing request for user id=${userId}. Waiting for response...`);
+        }
         const response = await this._userAccessTokenRequests[userId];
 
         // If response status is not 200: Remove refresh token and return null
         if(response.status !== 200) {
-            logger.error(`Failed to get user id=${userId} token. Refresh token is invalid or user has revoked access.`);
+            this.logger.error(`Failed to get user id=${userId} token. Refresh token is invalid or user has revoked access.`);
             this.tokenRepository.removeUserRefreshToken(userId);
             return null;
         }
 
         // else: Save new token and return access token
-        logger.log(`Successfully retrieved user id=${userId} token from Twitch API: ${response.data.access_token}`);
+        this.logger.info(`Successfully retrieved user id=${userId} token from Twitch API: ${this.logger.censor(response.data.access_token)}`);
         const newToken: UserToken = {
             access_token: response.data.access_token,
             refresh_token: response.data.refresh_token,
@@ -126,31 +137,40 @@ export class TokenService {
         return userToken
     }
 
-    public async getUserTokenById(userId: string): Promise<string | null> {
+    public async getUserTokenById(userId: string): Promise<UsableUserToken | null> {
         const userToken = await this._getUserToken(userId);
         if(userToken === null) return null;
-        return userToken.access_token
+        return {
+            token: userToken.access_token,
+            isApp: false,
+            userId: userId
+        }
     }
 
-    public async getUserTokenWithScopesById(userId: string, scope: TwtichPermissionScope[]): Promise<string | null> {
+    public async getUserTokenWithScopesById(userId: string, scope: TwtichPermissionScope[] = []): Promise<UsableUserTokenWithScopes | null> {
         const userToken = await this._getUserToken(userId);
         if(userToken === null) return null;
         for(const s of scope) {
             if(!userToken.scope.includes(s)) return null;
         }
-        return userToken.access_token
+        return {
+            token: userToken.access_token,
+            isApp: false,
+            userId: userId,
+            scopes: userToken.scope as TwtichPermissionScope[]
+        }
     }
 
-    public async getUserTokenByNickname(nickname: string): Promise<string | null> {
-        const user = await UserCacheManager.getInstance().getByName(nickname);
-        if(user === null) return null;
-        return this.getUserTokenById(user.id);
-    }
+    // public async getUserTokenByNickname(nickname: string): Promise<string | null> {
+    //     const user = await UserCacheManager.getInstance().getByName(nickname);
+    //     if(user === null) return null;
+    //     return this.getUserTokenById(user.id);
+    // }
 
-    public async getUserTokenWithScopesByNickname(nickname: string, scope: TwtichPermissionScope[]): Promise<string | null> {
-        const user = await UserCacheManager.getInstance().getByName(nickname);
-        if(user === null) return null;
-        return this.getUserTokenWithScopesById(user.id, scope);
-    }
+    // public async getUserTokenWithScopesByNickname(nickname: string, scope: TwtichPermissionScope[]): Promise<string | null> {
+    //     const user = await UserCacheManager.getInstance().getByName(nickname);
+    //     if(user === null) return null;
+    //     return this.getUserTokenWithScopesById(user.id, scope);
+    // }
     
 }

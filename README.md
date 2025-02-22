@@ -1,86 +1,53 @@
+Przejdź do [Polskiej Wersji](./README_PL.md)  
+
 # Twitch Bot Framework
 
-Twitch Bot Framework is a tool for creating bots on the Twitch platform, simplifying event management, communication with the Twitch API, and handling commands.
+Twitch Bot Framework is an advanced tool for creating bots on the Twitch platform. It aims to simplify event management, Twitch API integration and command handling, allowing developers to focus on implementing the bot's core logic. The framework provides an intuitive structure, modularity and easy configuration, making it an ideal choice for both novice and advanced bot developers.
 
-## Table of Contents
+## Features
 
-- [Introduction](#introduction)
-- [Installation](#installation)
-- [Docs](#docs)
-- [Example Usage](#example-usage)
-- [Note](#note)
+- **Easy integration with Twitch API** - ready-to-use modules for easy connection with Twitch API REST and WebSocket.
+- **Event handling** - the framework automatically handles events related to chat, users and (soon) much more!
+- **Command and Listener System** - ability to define custom commands and listeners, manage them easily.
 
-## Introduction
+## Example repository
 
-Twitch Bot Framework provides a straightforward way to build Twitch bots and handle commands. It simplifies integration with the Twitch API and allows developers to focus on the core functionality of their bots.
+If you want to see the framework in action, check out our sample repository: *[https://github.com/kajahl/twitch-bot-framework-preview](https://github.com/kajahl/twitch-bot-framework-preview)*. There you'll find a working example and instructions for configuration and implementation.
 
 ## Installation
 
-Work in progress...
+To install Twitch Bot Framework, follow these steps:
 
-## Docs
+1. make sure you have the latest version of Node.js installed.
+2. install the framework using npm or yarn:
+   ```sh
+   npm install twitch-bot-framework
+   ```
+   or
+   ```sh
+   yarn add twitch-bot-framework
+   ```
+3. configure the bot according to the documentation.
+4. launch the application and enjoy Twitch automation!
 
-You can find docs [here](https://kajahl.gitbook.io/twitch-bot-framework).
+## Documentation and examples of use
 
-## Example Usage
+Detailed documentation, implementation examples and instructions on how to configure the framework are available here: [Twitch Bot Framework Docs](https://kajahl.gitbook.io/twitch-bot-framework).
 
-`.env` file:
-```
-CLIENT_ID = ''
-CLIENT_SECRET = ''
-USER_REFRESH_TOKEN = ''
-USER_ID = ''
-```
-*`USER_REFRESH_TOKEN` is requred by `InMemoryTokenRepository`
+## Troubleshooting
 
-`index.ts` file
-```ts
-import TwitchBotFramework, { InMemoryTokenRepository, PingCommand } from 'twitch-bot-framework';
+If you encounter any problems while using the framework, you can report them in our public repository on GitHub: [Issues](https://github.com/kajahl/twitch-bot-framework/issues).
 
-import dotenv from 'dotenv';
-dotenv.config();
+In addition, you can join our community on Discord, where you can find help and the opportunity to exchange experiences with other developers: [Discord](https://discord.gg/uzsxSY7h5e).
 
-const clientId = process.env.CLIENT_ID as string;
-const clientSecret = process.env.CLIENT_SECRET as string;
-const userId = process.env.USER_ID as string;
+## Cooperation and project development
 
-const app = new TwitchBotFramework({
-    bot: {
-        userId,
-        clientId,
-        clientSecret
-    },
-    channels: {
-        listenChannels: [] // Will listen ^ userId channel only
-    },
-    chat: {
-        commands: [PingCommand],
-    },
-    repository: {
-        tokenClass: InMemoryTokenRepository
-    }
-});
-```
+If you are interested in developing the project and want to contribute, please contact us. We are open to new ideas, fixes and extending the framework with additional features.
 
-Example `My.command.ts` file:
-```ts
-import { Chat, ChatCommandExecution, ChatCommandExecutionData, ChatCommand } from "twitch-bot-framework";
+## License
 
-@ChatCommand({
-    name: 'mycommand',
-    keyword: 'my'
-})
-export default class MyCommand implements ChatCommandExecution {
-    async execution(data: ChatCommandExecutionData) {
-        const chat = await Chat.byId(data.event.broadcaster_user_id);
-        chat.message.send('Hello World!');
-    }
-}
-```
-Type `!my` in the bot user's chat to see `Hello World!`.
+The project is licensed under **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International** (**CC BY-NC-SA 4.0**). This means that you are free to use the code as you wish, subject to attribution of authorship, but you may not use it for commercial purposes. See [NOTICE.md](./NOTICE.md) for details.
 
-## Note
+---
 
-Please be aware that the Twitch Bot Framework is currently under development. At this stage, it supports only few events and includes limited API methods. However, more features and event handlers will be added in future updates.
-
-The source code repository for this framework is public - you can report any [issues](https://github.com/kajahl/twitch-bot-framework/issues) or requests in this repository or on the [Discord server](https://discord.gg/uzsxSY7h5e).
+Thank you for your interest in Twitch Bot Framework! We wish you a successful work on your own bot! 🎮🤖

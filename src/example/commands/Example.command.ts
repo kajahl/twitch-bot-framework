@@ -1,5 +1,12 @@
-import { ChatCommand } from "../../storage/decorators/ChatCommand.decorator";
-import { ChatCommandExecution, ChatCommandExecutionData, ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPostExecution, ChatCommandPreExecution } from "../../types/ChatCommand.types";
+import { ChatCommand } from "../../decorators/ChatCommand.decorator";
+import { API, BroadcasterData, ChannelOptions, Mess, MessageUser, OptionsProvider, Raw } from "../../decorators/ChatData.decorators";
+import { ChatterUser, PartialTwitchUser } from "../../objects/TwitchUser.object";
+import { ChannelOptionsProvider } from "../../providers/ChannelOptions.provider";
+import { ChatCommandExecution, ChatCommandExecutionGuard, ChatCommandExecutionGuardAvaliableResults, ChatCommandPostExecution, ChatCommandPreExecution } from "../../types/ChatCommand.types";
+import { ChannelOptionsExtend } from "../../../local";
+import { TwitchChatMessage } from "../../objects/ChatMessage.object";
+import APIClient from "../../clients/Api.client";
+
 
 @ChatCommand({ 
     name: 'example',
@@ -7,20 +14,36 @@ import { ChatCommandExecution, ChatCommandExecutionData, ChatCommandExecutionGua
     ignoreCase: false
 })
 export default class ExampleCommand implements ChatCommandExecutionGuard, ChatCommandPreExecution, ChatCommandExecution, ChatCommandPostExecution {
-    async guard(data: ChatCommandExecutionData): Promise<ChatCommandExecutionGuardAvaliableResults> {
-        if(data.event.badges.some(predicate => predicate.set_id === 'moderator')) return { canAccess: true };
-        return { canAccess: false, message: "You are not a moderator" };
+    async guard(@MessageUser() user: ChatterUser): Promise<ChatCommandExecutionGuardAvaliableResults> {
+        if(user.isBroadcaster() || user.isModerator() || user.isVIP()) return { canAccess: true };
+        return { canAccess: false, message: "You must be a broadcaster, moderator or VIP to use this command." };
     }
 
-    async preExecution(data: ChatCommandExecutionData): Promise<void> {
+    async preExecution(): Promise<void> {
         console.log('Pre-execution logic');
     }
 
-    async execution(data: ChatCommandExecutionData): Promise<void> {
+    async execution(
+        @OptionsProvider() provider: ChannelOptionsProvider<ChannelOptionsExtend>,
+        @ChannelOptions() options: ChannelOptionsExtend,
+        @BroadcasterData() broadcasterData: PartialTwitchUser,
+        @Mess() message: TwitchChatMessage
+    ): Promise<void> {
         console.log('Execution logic');
+        await message.reply(`Example command executed ${options.eXampleExecutionCounter} times.`);
+        if(!options.eXampleExecutionCounter) options.eXampleExecutionCounter = 0;
+        provider.setChannelOptions(broadcasterData.getId(), {
+            ...options,
+            eXampleExecutionCounter: options.eXampleExecutionCounter + 1
+        })
     }
 
-    async postExecution(data: ChatCommandExecutionData): Promise<void> {
-        console.log('Post-execution logic');
-    }
+    async postExecution(
+            @API() api: APIClient,
+            @BroadcasterData() broadcasterData: PartialTwitchUser
+        ): Promise<void> {
+            console.log('Post-execution logic');
+            const botUserId = api.config.getConfig().userId;
+            await api.sendMessage(botUserId, `eXample command executed @ #${broadcasterData.getLogin()}`);
+        }
 }

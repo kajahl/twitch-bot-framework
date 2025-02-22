@@ -12,7 +12,6 @@ export type ChatCommandDecoratorOptions = {
     name: string;
     keyword: string;
     aliases?: string[];
-    ignorePrefix?: boolean;
     ignoreCase?: boolean;
     transistent?: boolean;
 };
@@ -20,7 +19,7 @@ export type ChatCommandDecoratorOptions = {
 // Guard
 
 export type ChatCommandExecutionGuard = {
-    guard: (data: ChatCommandExecutionData, ...args: any[]) => TorPromiseT<ChatCommandExecutionGuardAvaliableResults>;
+    guard: (...args: any[]) => TorPromiseT<ChatCommandExecutionGuardAvaliableResults>;
 };
 
 export type ChatCommandExecutionGuardAvaliableResults = ChatCommandExecutionGuardBlockResult | ChatCommandExecutionGuardPassResult;
@@ -37,19 +36,13 @@ export type ChatCommandExecutionGuardPassResult = {
 // Execution
 
 export type ChatCommandPreExecution = {
-    preExecution: (data: ChatCommandExecutionData, ...args: any[]) => TorPromiseT<any>;
+    preExecution: (...args: any[]) => TorPromiseT<any>;
 };
 
 export type ChatCommandExecution = {
-    execution: (data: ChatCommandExecutionData, ...args: any[]) => TorPromiseT<any>;
+    execution: (...args: any[]) => TorPromiseT<any>;
 };
 
 export type ChatCommandPostExecution = {
-    postExecution: (data: ChatCommandExecutionData, ...args: any[]) => TorPromiseT<any>;
-};
-
-// Params
-
-export type ChatCommandExecutionData = {
-    event: ChannelChatMessageEventData;
+    postExecution: (...args: any[]) => TorPromiseT<any>;
 };

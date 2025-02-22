@@ -1,10 +1,10 @@
 {
   "name": "twitch-bot-framework",
-  "version": "0.0.5",
+  "version": "1.0.3",
   "description": "Framework for creating a bot for twitch",
   "author": "kajahl",
   "homepage": "https://github.com/kajahl/twitch-bot-framework",
-  "license": "AGPL-3.0-only",
+  "license": "CC-BY-NC-SA-4.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -32,6 +32,7 @@
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.13",
     "@types/node": "^22.10.2",
+    "@types/qs": "^6.9.18",
     "@types/ws": "^8.5.13",
     "@typescript-eslint/eslint-plugin": "^8.18.1",
     "@typescript-eslint/parser": "^8.18.1",
@@ -44,9 +45,14 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "add": "^2.0.6",
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
     "lodash": "^4.17.21",
-    "ws": "^8.18.0"
+    "qs": "^6.14.0",
+    "reflect-metadata": "^0.2.2",
+    "typedi": "^0.10.0",
+    "ws": "^8.18.0",
+    "yarn": "^1.22.22"
   }
 }

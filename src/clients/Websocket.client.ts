@@ -1,20 +1,28 @@
-import DataStorage from "../storage/runtime/Data.storage";
 import { NotificationPayload, RevocationPayload, WebsocketMessage, WebsocketMessageType, WelcomePayload } from "../types/Websocket.types";
-import Logger from "../utils/Logger";
+import { Logger, LoggerFactory } from "../utils/Logger";
 import { WebSocket } from "ws";
 import EventSubClient from "./EventSub.client";
-import { CommandHandler } from "../storage/decorators/ChatCommand.decorator";
 import TwitchEventId from "../enums/TwitchEventId.enum";
-import { ListenerHandler } from "../storage/decorators/ChatListener.decorator";
-
-const logger = new Logger('WebsocketClient');
+import ChatCommandsService from "../services/ChatCommands.service";
+import ChatListenersService from "../services/ChatListeners.service";
 
 export default class WebsocketClient {
     private websocketClient: WebSocket | null = null;
+    private readonly logger: Logger;
 
     constructor(
-        private readonly eventSubClient: EventSubClient
-    ) {}
+        private readonly eventSubClient: EventSubClient,
+        private onWebsocketConnected: (sessionId: string) => void,
+        private onWebsocketDisconnected: () => void,
+        readonly chatCommandsService: ChatCommandsService,
+        readonly chatListenersService: ChatListenersService,
+        readonly loggerFactory: LoggerFactory
+    ) {
+        this.logger = loggerFactory.createLogger('WebsocketClient');
+        this._connect();
+        
+        this.logger.debug('Initialized');
+    }
 
     // Keepalive
     private lastKeepAliveTimestamp: number = 0;
@@ -35,9 +43,9 @@ export default class WebsocketClient {
         this.keepAliveInterval = setInterval(() => {
             const currentTimestamp = Date.now();
             const difference = currentTimestamp - this.lastKeepAliveTimestamp;
-            logger.log(`Checking WebSocket keepalive (Last keepalive: ${difference}/${this.keepAliveIntervalMs + this.keepAliveIntervalMsOffset}ms)`);
+            this.logger.debug(`Checking WebSocket keepalive (Last keepalive: ${difference}/${this.keepAliveIntervalMs + this.keepAliveIntervalMsOffset}ms)`);
             if (difference > this.keepAliveIntervalMs + this.keepAliveIntervalMsOffset) {
-                logger.log(`WebSocket connection keepalive timeout.${this.reconnectOnTimeout ? ' Reconnecting...' : ''}`);
+                this.logger.warn(`WebSocket connection keepalive timeout.${this.reconnectOnTimeout ? ' Reconnecting...' : ''}`);
                 if(this.reconnectOnTimeout) this._connect(true);
                 return;
             }
@@ -55,7 +63,7 @@ export default class WebsocketClient {
         this.websocketClient = new WebSocket('wss://eventsub.wss.twitch.tv/ws');
 
         this.websocketClient.on('open', () => {
-            logger.log('Connected to EventSub WebSocket');
+            this.logger.info('Connected to EventSub WebSocket');
         });
 
         this.websocketClient.on('message', (data) => {
@@ -66,13 +74,13 @@ export default class WebsocketClient {
         });
 
         this.websocketClient.on('close', () => {
-            logger.log('Disconnected from EventSub WebSocket');
+            this.logger.warn('Disconnected from EventSub WebSocket');
             this._disconnect();
             if (this.reconnectOnClose) setTimeout(() => this.connect(), this.reconnectTimeout);
         });
 
         this.websocketClient.on('error', (err) => {
-            logger.error(JSON.stringify(err));
+            this.logger.error(JSON.stringify(err));
             this._disconnect();
             if (this.reconnectOnError) setTimeout(() => this.connect(), this.reconnectTimeout);
         });
@@ -81,7 +89,7 @@ export default class WebsocketClient {
     private _disconnect() {
         if (this.websocketClient == null) return;
         if (this.keepAliveInterval != null) clearTimeout(this.keepAliveInterval);
-        DataStorage.getInstance().websocketId.set(null);
+        this.onWebsocketDisconnected();
         this.websocketClient.close();
         this.websocketClient = null;
     }
@@ -92,7 +100,7 @@ export default class WebsocketClient {
         try {
             this._connect();
         } catch (e) {
-            logger.error(JSON.stringify(e));
+            this.logger.error(JSON.stringify(e));
             return false;
         }
         return true;
@@ -112,7 +120,7 @@ export default class WebsocketClient {
     
     private handleWelcomeMessage(welcomeMessage: WebsocketMessage<WelcomePayload>) {
         const websocketWelcome = welcomeMessage as WebsocketMessage<WelcomePayload>;
-        DataStorage.getInstance().websocketId.set(websocketWelcome.payload.session.id);
+        this.onWebsocketConnected(websocketWelcome.payload.session.id);
         this.setupKeepAlive(websocketWelcome.payload.session.keepalive_timeout_seconds * 1000);
         return;
     }
@@ -123,8 +131,8 @@ export default class WebsocketClient {
         const notification = websocketNotification.payload;
         // logger.log(`Received notification: ${JSON.stringify(notification)}`);
         if(notification.subscription.type == TwitchEventId.ChannelChatMessage) {
-            CommandHandler(notification.event);
-            ListenerHandler(notification.event);
+            this.chatCommandsService.handleCommand(notification.event);
+            this.chatListenersService.handleListener(notification.event);
         }
 
         return;
