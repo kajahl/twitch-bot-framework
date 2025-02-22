@@ -28,6 +28,7 @@ const Mess = CreateChatDataDecorator(ChatDataType.MESSAGE);
 const MessageUser = CreateChatDataDecorator(ChatDataType.MESSAGE_USER);
 const OptionsProvider = CreateChatDataDecorator(ChatDataType.OPTIONS_PROVIDER);
 const ChannelOptions = CreateChatDataDecorator(ChatDataType.CHANNEL_OPTIONS);
+const API = CreateChatDataDecorator(ChatDataType.API_CLIENT);
 
 export { 
     Raw, 
@@ -35,5 +36,6 @@ export {
     MessageUser,
     BroadcasterData, Broadcaster,
     MessageData, Mess,
-    OptionsProvider, ChannelOptions
+    OptionsProvider, ChannelOptions,
+    API
 };

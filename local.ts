@@ -2,7 +2,7 @@
 // import { TwitchBot } from './src/decorators/TwitchBot.decorator';
 // import { LogLevel } from './src/utils/Logger';
 // import { IListenChannelsProvider } from './src/types/ListenChannels.provider.types';
-// import { IChannelOptionsProvider, TChannelOptions } from './src/types/ChannelOptions.provider';
+import { IChannelOptionsProvider, TChannelOptions } from './src/types/ChannelOptions.provider';
 // import InMemoryTokenRepository from './src/example/repositories/InMemoryToken.repository';
 // import PingCommand from './src/example/commands/Ping.command';
 // import ExampleCommand from './src/example/commands/Example.command';
@@ -25,9 +25,9 @@
 //     }
 // }
 
-// export type ChannelOptionsExtend = TChannelOptions<{
-//     eXampleExecutionCounter: number;
-// }>;
+export type ChannelOptionsExtend = TChannelOptions<{
+    eXampleExecutionCounter: number;
+}>;
 
 // class ChannelOptionsProvider implements IChannelOptionsProvider<ChannelOptionsExtend> {
 //     private readonly baseOptions: ChannelOptionsExtend = {
@@ -63,7 +63,7 @@
 //     commands: [PingCommand, ExampleCommand],
 //     listeners: [CounterListener, ShowMessageListener],
 //     log: {
-//         levels: [LogLevel.INFO, LogLevel.NORMAL, LogLevel.ERROR, LogLevel.WARN] //, LogLevel.DEBUG],
+//         levels: [LogLevel.INFO, LogLevel.NORMAL, LogLevel.ERROR, LogLevel.WARN, LogLevel.DEBUG],
 //     },
 // })
 // class Bot {}
