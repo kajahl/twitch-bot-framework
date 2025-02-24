@@ -2,6 +2,10 @@ Przejdź do [Polskiej Wersji](./README_PL.md)
 
 # Twitch Bot Framework
 
+> **NOTICE!**  
+> This project has been moved to [https://github.com/tfxjs/tfxjs](https://github.com/tfxjs/tfxjs).  
+> No further changes will be made in this repository.
+
 Twitch Bot Framework is an advanced tool for creating bots on the Twitch platform. It aims to simplify event management, Twitch API integration and command handling, allowing developers to focus on implementing the bot's core logic. The framework provides an intuitive structure, modularity and easy configuration, making it an ideal choice for both novice and advanced bot developers.
 
 ## Features
